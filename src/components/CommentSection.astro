@@ -32,15 +32,15 @@ const { postSlug } = Astro.props;
         <label for="note">Ta note :</label>
         <div class="stars">
           <input type="radio" id="star5" name="note" value="5" required />
-          <label for="star5">★</label>
+          <label for="star5">⭐</label>
           <input type="radio" id="star4" name="note" value="4" />
-          <label for="star4">★</label>
+          <label for="star4">⭐</label>
           <input type="radio" id="star3" name="note" value="3" />
-          <label for="star3">★</label>
+          <label for="star3">⭐</label>
           <input type="radio" id="star2" name="note" value="2" />
-          <label for="star2">★</label>
+          <label for="star2">⭐</label>
           <input type="radio" id="star1" name="note" value="1" />
-          <label for="star1">★</label>
+          <label for="star1">⭐</label>
         </div>
       </div>
       
@@ -64,142 +64,34 @@ const { postSlug } = Astro.props;
 </div>
 
 <style>
-  .comment-section {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 1rem;
-  }
-  
-  .comment-form {
-    background: #f5f5f5;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-  
-  input[type="text"],
-  textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: inherit;
-  }
-  
-  .stars {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-  
-  .stars input {
-    display: none;
-  }
-  
-  .stars label {
-    cursor: pointer;
-    font-size: 2rem;
-    color: #ddd;
-    transition: color 0.2s;
-  }
-  
-  .stars input:checked ~ label,
-  .stars label:hover,
-  .stars label:hover ~ label {
-    color: #ffc107;
-  }
-  
-  button {
-    background: #4CAF50;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  
-  button:hover {
-    background: #45a049;
-  }
-  
-  #message {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    border-radius: 4px;
-  }
-  
-  #message.success {
-    background: #d4edda;
-    color: #155724;
-  }
-  
-  #message.error {
-    background: #f8d7da;
-    color: #721c24;
-  }
-  
-  .comment {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border-left: 4px solid #4CAF50;
-  }
-  
-  .comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-  
-  .comment-author {
-    font-weight: bold;
-  }
-  
-  .comment-rating {
-    color: #ffc107;
-  }
-  
-  .comment-date {
-    color: #666;
-    font-size: 0.9rem;
-  }
-  
-  .comment-text {
-    margin-top: 0.5rem;
-    line-height: 1.6;
-  }
-  .average-rating {
-  text-align: center;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.comment-section {
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 0 1rem;
 }
 
-.average-rating h3 {
-  margin-bottom: 0.5rem;
+.comment-section h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
   color: #333;
 }
 
-.stars-display {
-  font-size: 2.5rem;
-  color: #ffc107;
-  margin: 0.5rem 0;
+.average-rating {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 20px;
+  margin-bottom: 3rem;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 2px solid #e0e0e0;
+}
+
+.average-rating h3 {
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
 }
 
 .stars-display .loading {
@@ -207,11 +99,248 @@ const { postSlug } = Astro.props;
   color: #666;
 }
 
+.stars-display .loading {
+  font-size: 1rem;
+  color: white;
+}
+
 #rating-count {
   display: block;
   color: #666;
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin-top: 0.5rem;
+}
+
+.comment-form {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  margin-bottom: 3rem;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #f0f0f0;
+}
+
+.comment-form h3 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.4rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.9rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  box-sizing: border-box; /* ← Important pour éviter le dépassement */
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.stars {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
+.stars input {
+  display: none;
+}
+
+.stars label {
+  cursor: pointer;
+  font-size: 2.5rem;
+  margin: 0;
+  transition: all 0.2s ease;
+  filter: grayscale(100%); /* ← Grise les étoiles non sélectionnées */
+  opacity: 0.3; /* ← Les rend semi-transparentes */
+}
+
+.stars label:hover,
+.stars label:hover ~ label {
+  filter: grayscale(0%); /* ← Enlève le gris au survol */
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.stars input:checked ~ label {
+  filter: grayscale(0%); /* ← Enlève le gris quand sélectionné */
+  opacity: 1;
+}
+
+button {
+  background-image: url('/Leopard.jpg');
+  background-size: cover;
+  background-position: center;
+  color: white !important;
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+  transition: all 0.3s ease;
+}
+
+button:hover::before {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button * {
+  position: relative;
+  z-index: 1;
+}
+
+#message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+#message.success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+#message.error {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.comments-list h3 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.4rem;
+}
+
+.comment {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.comment:hover {
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.comment-author {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #667eea;
+}
+
+.comment-rating {
+  color: #ffc107;
+  font-size: 1.2rem;
+}
+
+.comment-date {
+  color: #999;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+}
+
+.comment-text {
+  margin-top: 0.8rem;
+  line-height: 1.7;
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  .comment-form {
+    padding: 1.5rem;
+  }
+  
+  .average-rating {
+    padding: 1.5rem;
+  }
+  
+  .stars-display {
+    font-size: 2.5rem;
+  }
+  
+  button {
+    width: 100%;
+    padding: 1rem;
+  }
 }
 </style>
 
@@ -246,9 +375,9 @@ const { postSlug } = Astro.props;
       // Afficher les étoiles
       const averageStars = document.getElementById('average-stars');
       averageStars.innerHTML = 
-    '★'.repeat(fullStars) + 
-    '☆'.repeat(emptyStars);
-      
+        '⭐'.repeat(fullStars) + 
+        '☆'.repeat(emptyStars);
+            
       document.getElementById('rating-count').textContent = 
         `${average.toFixed(1)}/5 (${data.length} avis)`;
     } else {
@@ -259,7 +388,7 @@ const { postSlug } = Astro.props;
     
     // Afficher les commentaires
     if (data.length === 0) {
-      commentsContainer.innerHTML = '<p>Aucun commentaire pour le moment. Soyez le premier à laisser un avis !</p>';
+      commentsContainer.innerHTML = "<p>T'as pas encore commenté</p>";
       return;
     }
     
@@ -267,7 +396,7 @@ const { postSlug } = Astro.props;
       <div class="comment">
         <div class="comment-header">
           <span class="comment-author">${escapeHtml(comment.auteur)}</span>
-          <span class="comment-rating">${'★'.repeat(comment.note)}${'☆'.repeat(5 - comment.note)}</span>
+          <span class="comment-rating">${'⭐'.repeat(comment.note)}${'☆'.repeat(5 - comment.note)}</span>
         </div>
         <div class="comment-date">${new Date(comment.created_at).toLocaleDateString('fr-FR')}</div>
         <div class="comment-text">${escapeHtml(comment.commentaire)}</div>
