@@ -30,9 +30,7 @@ const images = [
     // Ajoutez autant d'images que vous voulez
 ];
 
-// Sélectionner une phrase aléatoire
-const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-const randomImage = images[Math.floor(Math.random() * images.length)];
+
 ---
 
 <!DOCTYPE html>
@@ -48,12 +46,15 @@ const randomImage = images[Math.floor(Math.random() * images.length)];
     <main>
         <div class="sleep-container">
             <h1>💤 Dis lui d'aller se coucher</h1>
-            <p class="random-phrase">{randomPhrase}</p>
-            <img src={randomImage} alt="Image du sommeil" class="sleep-image" />
+            
+                
+            <p class="random-phrase" id="random-phrase"></p>
+            <img id="random-image" src="" alt="Image du sommeil" class="sleep-image" />
             <button id="sleep-btn"> Va dormir !</button>
             
             <div id="message"></div>
         </div>
+        <div id="phrase-data" style="display: none;"></div>
     </main>
 
     <Footer />
@@ -204,6 +205,18 @@ const randomImage = images[Math.floor(Math.random() * images.length)];
         }
 
     </style>
+
+    <!-- Script 1 : Pour la phrase et l'image aléatoires -->
+    <script define:vars={{ phrases, images }}>
+        // Choisir phrase et image aléatoires
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        const randomImage = images[Math.floor(Math.random() * images.length)];
+        
+        // Afficher la phrase et l'image
+        document.getElementById('random-phrase').textContent = randomPhrase;
+        document.getElementById('random-image').src = randomImage;
+        document.getElementById('phrase-data').textContent = randomPhrase;
+    </script>
     
     <script>
         function createConfetti() {
@@ -221,52 +234,54 @@ const randomImage = images[Math.floor(Math.random() * images.length)];
             zIndex: 999999
         });
     }
+
         const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
-        const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
-        const btn = document.getElementById('sleep-btn');
-        const messageDiv = document.getElementById('message');
+    const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
+    const btn = document.getElementById('sleep-btn');
+    const messageDiv = document.getElementById('message');
 
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            btn.textContent = 'Envoi en cours...';
-            // const randomPhrase = document.getElementById('phrase-data').dataset.phrase;
-            const message = `🛏️ Madame souhaite dormir garçon ! 💤\n\n`;
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = 'Envoi en cours...';
 
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: message,
-                    }),
-                });
+        const randomPhrase = document.getElementById('phrase-data').textContent;
+        const message = `🛏️ Maria dit qu'il est temps d'aller dormir ! 💤\n\n"${randomPhrase}"\n\nHeure : ${new Date().toLocaleString('fr-FR')}`;
 
-                const data = await response.json();
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message,
+                }),
+            });
+
+            const data = await response.json();
 
             if (data.ok) {
-                createConfetti(); // ← Ajoutez cette ligne
+                createConfetti();
                 messageDiv.textContent = '✅ Message envoyé ! Bonne nuit 😴';
                 messageDiv.className = 'success';
             } else {
                 throw new Error('Erreur Telegram');
             }
-            } catch (error) {
-                messageDiv.textContent = '❌ Erreur lors de l\'envoi...';
-                messageDiv.className = 'error';
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🛏️ Va dormir !';
-                
-                setTimeout(() => {
-                    messageDiv.textContent = '';
-                    messageDiv.className = '';
-                }, 3000);
-            }
-        });
+        } catch (error) {
+            messageDiv.textContent = '❌ Erreur lors de l\'envoi...';
+            messageDiv.className = 'error';
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🛏️ Va dormir !';
+            
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 3000);
+        }
+    });
     </script>
 </body>
 </html>
