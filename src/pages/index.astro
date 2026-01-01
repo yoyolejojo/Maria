@@ -1,0 +1,34 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import monImage from '../assets/rizz.jpg';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Pour Maria</h1>
+			<p>
+				Une attention, qui allie certaines de mes capacités avec ce que nous sommes entrain de commencer à partager ensemble
+			</p>
+			<p>
+				Ici, tu pourras accéder à un joli blog, avec nos sorties. Le but ? Tu notes les dates, tu fais des blagues, et tu choisis
+				le prochain ! 
+			</p>
+			<p>Une page est aussi dédiée pour préserver ton sommeil, n'hésite pas à l'utiliser...</p>
+			<p style="font-style:italic;">"Le plus beau cadeau que l'on puisse offrir est une portion de soi-même"</p>
+			<p>Avec yoyo c'est jamais trop</p>
+			
+			<img src={monImage.src} alt="Description de l'image" />
+
+		</main>
+		<Footer />
+	</body>
+</html>
