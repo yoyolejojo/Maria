@@ -245,7 +245,7 @@ const images = [
         btn.textContent = 'Envoi en cours...';
 
         const randomPhrase = document.getElementById('phrase-data').textContent;
-        const message = `🛏️ Maria dit qu'il est temps d'aller dormir ! 💤\n\n"${randomPhrase}"\n\nHeure : ${new Date().toLocaleString('fr-FR')}`;
+        const message = `🛏️ Maria te dis d'aller dormir là ! 💤\n\n"${randomPhrase}"`;
 
         try {
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
