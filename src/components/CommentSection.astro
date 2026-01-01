@@ -238,20 +238,16 @@ const { postSlug } = Astro.props;
     
     // Calculer la note moyenne
     if (data.length > 0) {
-      const totalNotes = data.reduce((sum, comment) => sum + comment.note, 0);
+     const totalNotes = data.reduce((sum, comment) => sum + comment.note, 0);
       const average = totalNotes / data.length;
-      const roundedAverage = Math.round(average * 2) / 2; // Arrondir à 0.5 près
+      const fullStars = Math.floor(average); // Arrondi à l'entier inférieur
+      const emptyStars = 5 - fullStars;
       
       // Afficher les étoiles
       const averageStars = document.getElementById('average-stars');
-      const fullStars = Math.floor(roundedAverage);
-      const hasHalfStar = roundedAverage % 1 !== 0;
-      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-      
       averageStars.innerHTML = 
-        '★'.repeat(fullStars) + 
-        (hasHalfStar ? '⯨' : '') + 
-        '☆'.repeat(emptyStars);
+    '★'.repeat(fullStars) + 
+    '☆'.repeat(emptyStars);
       
       document.getElementById('rating-count').textContent = 
         `${average.toFixed(1)}/5 (${data.length} avis)`;
