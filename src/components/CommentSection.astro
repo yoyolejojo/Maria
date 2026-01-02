@@ -419,29 +419,55 @@ button * {
     const note = parseInt((document.querySelector('input[name="note"]:checked') as HTMLInputElement).value);
     const commentaire = (document.getElementById('commentaire') as HTMLTextAreaElement).value;
     
-    const { error } = await supabase
-      .from('commentaires')
-      .insert([
-        { post_id: postSlug, auteur, note, commentaire }
-      ]);
-    
-    if (error) {
-        console.error('Erreur Supabase:', error);
-        messageDiv.textContent = 'Erreur : ' + error.message;
-        messageDiv.className = 'error';
-    } else {
-      messageDiv.textContent = 'Commentaire publié avec succès !';
-      messageDiv.className = 'success';
-      form.reset();
-      loadComments();
-      
-      setTimeout(() => {
-        messageDiv.textContent = '';
-        messageDiv.className = '';
-      }, 3000);
-    }
-  });
+const { error } = await supabase
+  .from('commentaires')
+  .insert([
+    { post_id: postSlug, auteur, note, commentaire }
+  ]);
+
+if (error) {
+  console.error('Erreur Supabase:', error);
+  messageDiv.textContent = 'Erreur : ' + error.message;
+  messageDiv.className = 'error';
+} else {
+  // Envoyer une notification Telegram
+  const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
+  const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
+  
+  const notificationMessage = `📝 Nouveau commentaire sur le blog !\n\n` +
+    `👤 Auteur : ${auteur}\n` +
+    `⭐ Note : ${note}/5\n` +
+    `📄 Post : ${postSlug}\n` +
+    `💬 Commentaire : "${commentaire}"\n\n` +
+    `🕐 ${new Date().toLocaleString('fr-FR')}`;
+  
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: notificationMessage,
+      }),
+    });
+  } catch (telegramError) {
+    console.error('Erreur notification Telegram:', telegramError);
+    // On n'affiche pas l'erreur à l'utilisateur, le commentaire est quand même enregistré
+  }
+  
+  messageDiv.textContent = 'Commentaire publié avec succès !';
+  messageDiv.className = 'success';
+  form.reset();
+  loadComments();
+  
+  setTimeout(() => {
+    messageDiv.textContent = '';
+    messageDiv.className = '';
+  }, 3000);
+}},
   
   // Charger les commentaires au chargement de la page
-  loadComments();
+  loadComments());
 </script>
