@@ -1,7 +1,7 @@
 ---
 title: 'Première rencontre'
 description: 'Un premier verre'
-pubDate: 'Oct 20 2025'
+pubDate: 'Oct 28 2025'
 heroImage: '../../assets/Reva.jpg'
 ---
 

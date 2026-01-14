@@ -1,7 +1,7 @@
 ---
 title: "Bu ambiance hôpital"
 description: 'Travail sous des lumières de clinique'
-pubDate: 'Oct 28 2025'
+pubDate: 'Oct 30 2025'
 heroImage: '../../assets/MIR.png'
 ---
 
