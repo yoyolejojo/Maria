@@ -1,7 +1,7 @@
 ---
 title: 'Musée douteux'
 description: 'A deux doigts de me faire bloquer'
-pubDate: 'Nov 15 2025'
+pubDate: 'Nov 18 2025'
 heroImage: '../../assets/guimet.jpg'
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: 'Géocaching dans Paris'
 description: 'Une aventure pleine de rebondissement'
-pubDate: 'Nov 15 2025'
+pubDate: 'Dec 6 2025'
 heroImage: '../../assets/Geo.jpg'
 ---
 
