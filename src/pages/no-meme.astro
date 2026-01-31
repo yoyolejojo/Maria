@@ -1,0 +1,80 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// Mettez le chemin de votre meme ici
+const memeImage = "assets/cat_val2.jpg"; // À CHANGER - mettez votre image dans public/memes/
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="😅" description="Saint-Valentin" />
+</head>
+<body>
+    <Header />
+    
+    <main>
+        <div class="meme-container">
+            <img src={"cat_val2.jpg"} alt="Vraiment?" class="meme-img" />
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .meme-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .meme-img {
+            max-width: 600px;
+            width: 100%;
+            border-radius: 10px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .meme-img {
+                max-width: 100%;
+            }
+        }
+    </style>
+
+    <script>
+        // Rediriger après 2 secondes
+        setTimeout(() => {
+            window.location.href = '/no';
+        }, 2000); // 2000ms = 2 secondes (changez si vous voulez plus ou moins de temps)
+    </script>
+</body>
+</html>

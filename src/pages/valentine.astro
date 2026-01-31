@@ -1,0 +1,120 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="💕 Une question..." description="Saint-Valentin" />
+</head>
+<body>
+    <Header />
+    
+    <main>
+        
+
+        <div class="valentine-container">
+            <h2>Cliché mais on adore ?</h2>
+            <p style="text-align: justify;">Même si une autre histoire de speed dating a la Saint-valentin serait, je pense, des plus hilarants
+                    Je te propose cette année un autre plan qui je l'espère pourra te plaire</p>    
+            <h1 style="margin-top: 15%;">Veux-tu être ma Valentine ?</h1>
+            
+            <div class="buttons">
+                <a href="/yes" class="btn btn-yes">Oui ! </a>
+                <a href="/no-meme" class="btn btn-no">Non </a>
+            </div>
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .valentine-container {
+            
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #e91e63;
+            animation: pulse 2s infinite;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1.5rem 3rem;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-no {
+            background: #ddd;
+            color: #666;
+        }
+
+        .btn-no:hover {
+            background: #ccc;
+        }
+
+        /* @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        } */
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 1rem 2rem;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</body>
+</html>

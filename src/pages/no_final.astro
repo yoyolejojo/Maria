@@ -1,0 +1,102 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="💕 Allez..." description="Saint-Valentin" />
+</head>
+<body>
+    <Header />
+    
+    <main>
+        <div class="final-container">
+            <h1>T'as besoin d'un peu d'aide je crois...</h1>
+            <p>Veux-tu être ma valentine ce 14 février ?</p>
+            
+            <a href="/yes" class="btn btn-yes">Oui</a>
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .final-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #e91e63;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 3rem;
+        }
+
+        .btn-yes {
+            padding: 3rem 6rem;
+            font-size: 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.4);
+            display: inline-block;
+            transition: all 0.3s ease;
+            
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.15);
+        }
+
+        @keyframes pulse-big {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            p {
+                font-size: 1.2rem;
+            }
+            
+            .btn-yes {
+                padding: 1.5rem 3rem;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</body>
+</html>
