@@ -19,3 +19,5 @@ On notera que malgré le fait qu'on se parle tous les jours, de tout et de rien.
 
 Mention spéciale pour la discussion sur ton ex, en fait chaque fois que tu m'en parles j'aime bien parce que c'est comme une mini serie genre mdrrr. 
 
+Ps : Il y'a des choses que nous deux nous n'avons pas faites -> on s'accorde sur cette phrase ? 
+
