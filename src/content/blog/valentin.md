@@ -17,7 +17,7 @@ Le baiser salé c'est un banger, je suis aussi très content que le concert t'ai
 Puis pour pas arranger notre karma, la vie nous met sur notre chemin un vieux bouffon et un chauve qui se cire le crâne... On est soumis à certaines epreuves, et je pense que c'est pas par hasard...
 
 J'écris ce post avec le doudou à côté de moi en mangeant les bonbons et les chocolats. Ca m'a fait vraiment plaisir, et en plus je me régale. 
-
+    
 Plus sérieusement, cette soirée était super. J'aime être avec toi, te sentir contre moi, rigoler ensemble, Partager avec toi des moments qui me tiennent à coeur, t'embrasser, te tenir la main, et te répéter à peu près 40 fois par minute que je te trouve vraiment très belle. J'adore quand tu me taquine, j'adore quand je dis un truc qui va te faire lâcher un soupir accompagné d'un grand sourire. J'adore te regarder sans rien dire. 
 
 Et surtout, j'aime sentir que sans les mots, tu me fais comprendre que tu te sens bien avec moi. 
