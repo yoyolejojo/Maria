@@ -1,0 +1,480 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="Nos sorties à faire 🎯" description="Liste des idées de sorties" />
+</head>
+<body>
+    <Header />
+    
+    <main>
+        <div class="sorties-container">
+            <h1>🎯 Nos idées de sorties</h1>
+            
+            <!-- Formulaire pour ajouter une idée -->
+            <div class="add-form">
+                <h2>Ajouter une nouvelle idée</h2>
+                <form id="sortie-form">
+                    <div class="form-row">
+                        <input 
+                            type="text" 
+                            id="titre" 
+                            placeholder="Idée de sortie..." 
+                            required 
+                            maxlength="200"
+                        />
+                        
+                        <select id="categorie" required>
+                            <option value="">Catégorie</option>
+                            <option value="Restaurant">🍽️ Restaurant</option>
+                            <option value="Balade">🚶 Balade</option>
+                            <option value="Culture">🎨 Culture</option>
+                            <option value="Sport">⚽ Sport</option>
+                            <option value="Cinéma">🎬 Cinéma</option>
+                            <option value="Voyage">✈️ Voyage</option>
+                            <option value="Autre">💡 Autre</option>
+                        </select>
+                        
+                        <button type="submit">Ajouter</button>
+                    </div>
+                </form>
+                <div id="message"></div>
+            </div>
+            
+            <!-- Filtres par catégorie -->
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">Tout</button>
+                <button class="filter-btn" data-filter="Restaurant">🍽️ Restaurant</button>
+                <button class="filter-btn" data-filter="Balade">🚶 Balade</button>
+                <button class="filter-btn" data-filter="Culture">🎨 Culture</button>
+                <button class="filter-btn" data-filter="Sport">⚽ Sport</button>
+                <button class="filter-btn" data-filter="Cinéma">🎬 Cinéma</button>
+                <button class="filter-btn" data-filter="Voyage">✈️ Voyage</button>
+                <button class="filter-btn" data-filter="Autre">💡 Autre</button>
+            </div>
+            
+            <!-- Liste des sorties -->
+            <div class="sorties-list">
+                <h2>À faire</h2>
+                <div id="sorties-container">
+                    <p class="loading">Chargement...</p>
+                </div>
+            </div>
+            
+            <div class="sorties-list done-section">
+                <h2>✅ Déjà fait</h2>
+                <div id="sorties-done-container">
+                    <p class="loading">Aucune sortie terminée pour le moment</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .sorties-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        #titre {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        #categorie {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        input, select {
+            padding: 0.9rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button[type="submit"] {
+            background-image: url('/Leopard.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 0.9rem 2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+        }
+
+        button[type="submit"]:hover::before {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"] * {
+            position: relative;
+            z-index: 1;
+        }
+
+        #message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        #message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        #message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .sorties-list {
+            margin-bottom: 3rem;
+        }
+
+        .done-section h2 {
+            color: #4caf50;
+        }
+
+        .sortie-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 2px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem; /* ← Augmenté pour plus d'espace */
+        transition: all 0.3s ease;
+        }
+
+        .sortie-item:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        }
+
+        .sortie-item.done {
+        opacity: 0.7;
+        }
+
+        .sortie-item.done .sortie-titre {
+        text-decoration: line-through;
+        color: #999;
+        }
+
+        .checkbox {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        flex-shrink: 0;
+        }
+
+        .sortie-content {
+        flex: 1;
+        display: flex; /* ← Ajouté */
+        align-items: center; /* ← Ajouté */
+        gap: 1.5rem; /* ← Ajouté */
+        flex-wrap: wrap; /* ← Pour mobile */
+        }
+
+        .sortie-titre {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0; /* ← Supprime les marges */
+        flex: 1; /* ← Prend l'espace disponible */
+        min-width: 200px; /* ← Pour éviter qu'il soit trop compressé */
+        }
+
+        .sortie-categorie {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-style: italic; /* ← Italique */
+        font-weight: 700; /* ← Gras */
+        white-space: nowrap; /* ← Empêche le texte de se couper */
+        flex-shrink: 0; /* ← Garde sa taille */
+        }
+        .loading {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .sorties-container {
+                padding: 0 1.5rem; /* ← Augmente l'espace sur les côtés */
+            }
+            
+            .add-form {
+                padding: 1.5rem; /* ← Réduit le padding du formulaire */
+            }
+            
+            .form-row {
+                flex-direction: column;
+                align-items: stretch; /* ← Étire les éléments */
+            }
+            
+            #titre, #categorie {
+                width: 100%; /* ← Force 100% de largeur */
+                box-sizing: border-box; /* ← Inclut padding et border dans la largeur */
+            }
+            
+            button[type="submit"] {
+                width: 100%;
+            }
+        }
+    </style>
+
+    <script>
+        import { supabase } from '../supabase.js';
+        
+        const form = document.getElementById('sortie-form');
+        const messageDiv = document.getElementById('message');
+        const sortiesContainer = document.getElementById('sorties-container');
+        const sortiesDoneContainer = document.getElementById('sorties-done-container');
+        
+        let currentFilter = 'all';
+        
+        // Charger les sorties
+        async function loadSorties() {
+            const { data, error } = await supabase
+                .from('sorties')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                sortiesContainer.innerHTML = '<p class="loading">Erreur lors du chargement</p>';
+                return;
+            }
+            
+            displaySorties(data);
+        }
+        
+        // Afficher les sorties
+        function displaySorties(sorties) {
+            const filtered = currentFilter === 'all' 
+                ? sorties 
+                : sorties.filter(s => s.categorie === currentFilter);
+            
+            const todo = filtered.filter(s => !s.fait);
+            const done = filtered.filter(s => s.fait);
+            
+            // Afficher les sorties à faire
+            if (todo.length === 0) {
+                sortiesContainer.innerHTML = '<p class="loading">Aucune sortie à faire !</p>';
+            } else {
+                sortiesContainer.innerHTML = todo.map(sortie => `
+                <div class="sortie-item" data-id="${sortie.id}" style="display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 2px solid #e0e0e0;">
+                    <input 
+                        type="checkbox" 
+                        class="checkbox" 
+                        ${sortie.fait ? 'checked' : ''}
+                        onchange="toggleSortie(${sortie.id}, this.checked)"
+                        style="width: 24px; height: 24px; cursor: pointer; flex-shrink: 0;"
+                    />
+                    <div style="flex: 1; font-size: 1.1rem; font-weight: 600; color: #333;">${escapeHtml(sortie.titre)}</div>
+                    <span style="padding: 0.4rem 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.9rem; font-style: italic; font-weight: 700; white-space: nowrap;">${sortie.categorie}</span>
+                </div>
+                `).join('');
+            }
+            
+            // Afficher les sorties faites
+            if (done.length === 0) {
+                sortiesDoneContainer.innerHTML = '<p class="loading">Aucune sortie terminée</p>';
+            } else {
+                sortiesDoneContainer.innerHTML = done.map(sortie => `
+                <div class="sortie-item done" data-id="${sortie.id}" style="display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 2px solid #e0e0e0; opacity: 0.7;">
+                    <input 
+                        type="checkbox" 
+                        class="checkbox" 
+                        checked
+                        onchange="toggleSortie(${sortie.id}, this.checked)"
+                        style="width: 24px; height: 24px; cursor: pointer; flex-shrink: 0;"
+                    />
+                    <div style="flex: 1; font-size: 1.1rem; font-weight: 600; color: #999; text-decoration: line-through;">${escapeHtml(sortie.titre)}</div>
+                    <span style="padding: 0.4rem 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.9rem; font-style: italic; font-weight: 700; white-space: nowrap;">${sortie.categorie}</span>
+                </div>
+                `).join('');
+            }
+        }
+        
+        // Fonction pour échapper le HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Toggle sortie (fait/pas fait)
+        window.toggleSortie = async function(id, fait) {
+            const { error } = await supabase
+                .from('sorties')
+                .update({ fait })
+                .eq('id', id);
+            
+            if (!error) {
+                loadSorties();
+            }
+        };
+        
+        // Ajouter une sortie
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const titre = document.getElementById('titre').value;
+            const categorie = document.getElementById('categorie').value;
+            
+            const { error } = await supabase
+                .from('sorties')
+                .insert([{ titre, categorie, fait: false }]);
+            
+            if (error) {
+                messageDiv.textContent = 'Erreur lors de l\'ajout';
+                messageDiv.className = 'error';
+            } else {
+                messageDiv.textContent = 'Idée ajoutée !';
+                messageDiv.className = 'success';
+                form.reset();
+                loadSorties();
+                
+                setTimeout(() => {
+                    messageDiv.textContent = '';
+                    messageDiv.className = '';
+                }, 2000);
+            }
+        });
+        
+        // Filtres
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                loadSorties();
+            });
+        });
+        
+        // Charger au démarrage
+        loadSorties();
+    </script>
+</body>
+</html>
