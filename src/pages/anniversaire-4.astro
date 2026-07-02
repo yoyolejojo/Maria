@@ -1,0 +1,111 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="Je t'aime 💕" description="Anniversaire" />
+</head>
+<body>
+    <Header />
+    
+    
+
+    <main>
+            
+        <div class="scroll-container">
+            <p class="reveal-text">
+                Parce que ce que je ressens pour toi ne peut pas être dit avec les mots, j'espère que mes actes te feront te sentir comme la plus aimée des femmes.
+            </p>
+            
+            <p class="reveal-text">
+                Et peut-être bien, que ça m'arrange de passer autant de temps avec toi, et d'avoir comme excuse cette journée spéciale.
+            </p>
+            
+            <p class="reveal-text">
+                En espérant que ce texte te fera patienter un tout petit peu avant samedi,
+            </p>
+            
+            <p class="reveal-text final-line">
+                je t'aime
+            </p>
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+            /* background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); */
+        }
+
+        .scroll-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 15vh 2rem 30vh 2rem;
+        }
+
+        .reveal-text {
+            font-size: 1.6rem;
+            line-height: 1.9;
+            color: #4a4a4a;
+            font-family: Georgia, serif;
+            text-align: center;
+            margin-bottom: 40vh;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .reveal-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .final-line {
+            font-size: 2.2rem;
+            font-weight: 700;
+            /* color: #e91e63; */
+            margin-bottom: 10vh;
+        }
+
+        @media (max-width: 768px) {
+            .reveal-text {
+                font-size: 1.2rem;
+            }
+
+            .final-line {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+
+    <script>
+        const texts = document.querySelectorAll('.reveal-text');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.5
+        });
+
+        texts.forEach(text => observer.observe(text));
+    </script>
+</body>
+</html>

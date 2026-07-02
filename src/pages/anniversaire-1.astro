@@ -1,0 +1,121 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="Une journée spéciale... 💕" description="Anniversaire" />
+</head>
+<body>
+    <Header />
+    
+    
+    <main>
+        
+        <div class="page-container">
+            
+            <div class="text-card">
+                <p>Pour te faire patienter, voici un joli texte que tu vas sûrement décortiquer jusqu'a samedi</p>
+                <p class="paragraph">
+                    Là où le 11ème regarde le 3ème, la journée débutera sous une jolie verrière où nous prendrons le temps de se vider la tête de cette semaine quelque peu intense autour d'un moment que nous connaissons bien. Une activité que nous faisons ensemble, peut-être trop parfois, mais que l'on adore à chaque fois.
+                </p>
+                
+                <a href="/anniversaire-2" class="next-btn">Suite de l'histoire →</a>
+            </div>
+        </div>
+    </main>
+    
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); */
+        }
+
+        .page-container {
+            padding: 3rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .text-card {
+            max-width: 650px;
+            background: white;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 50px rgba(233, 30, 99, 0.15);
+            text-align: center;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .paragraph {
+            font-size: 1.3rem;
+            line-height: 1.9;
+            color: #4a4a4a;
+            margin-bottom: 2.5rem;
+            font-family: Georgia, serif;
+        }
+
+        .next-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(245, 87, 108, 0.45);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .text-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .paragraph {
+                font-size: 1.1rem;
+            }
+
+            .next-btn {
+                padding: 0.9rem 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>
