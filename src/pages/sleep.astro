@@ -235,8 +235,7 @@ const images = [
         });
     }
 
-        const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
-    const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
+    const API_URL = import.meta.env.PUBLIC_API_URL;
     const btn = document.getElementById('sleep-btn');
     const messageDiv = document.getElementById('message');
 
@@ -245,18 +244,15 @@ const images = [
         btn.textContent = 'Envoi en cours...';
 
         const randomPhrase = document.getElementById('phrase-data').textContent;
-        const message = `🛏️ Maria te dis d'aller dormir là ! 💤\n\n"${randomPhrase}"`;
 
         try {
-            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            // Le Worker envoie le message Telegram (avec limite anti-spam)
+            const response = await fetch(`${API_URL}/notify/dodo`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: message,
-                }),
+                body: JSON.stringify({ phrase: randomPhrase }),
             });
 
             const data = await response.json();

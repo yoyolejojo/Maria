@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "maria-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "maria-db",
+      // Remplacer par l'id affiché par `npx wrangler d1 create maria-db`
+      "database_id": "58cd728f-c615-4c00-8c9f-0df5fb48c20a",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Anti-spam des notifications Telegram ("va dormir", page yes)
+  "ratelimits": [
+    {
+      "name": "NOTIFY_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 3, "period": 60 }
+    }
+  ],
+
+  // En local, .dev.vars remplace cette valeur
+  "vars": {
+    "ALLOWED_ORIGINS": "https://mariaetyoyo.netlify.app"
+  },
+
+  "secrets": {
+    "required": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]
+  }
+}

@@ -116,24 +116,14 @@ const valentineImage = "../assets/cat_val4.jpg"; // À CHANGER
         //window.addEventListener('load', launchConfetti);
 
 
+        // Le Worker envoie le message Telegram (avec limite anti-spam)
         async function sendTelegramNotification() {
-        const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
-        const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
-        
-        const message = `Elle a dit oui, mais prend pas la confiance\n\n` +
-            `Maintenant faut organisé hein...\n\n` +
-            `Heure : ${new Date().toLocaleString('fr-FR')}`;
-        
         try {
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            await fetch(`${import.meta.env.PUBLIC_API_URL}/notify/valentine`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: message,
-                }),
             });
         } catch (error) {
             console.error('Erreur notification Telegram:', error);

@@ -346,7 +346,7 @@ button * {
 </style>
 
 <script>
-  import { supabase } from '../supabase.js';
+  const API_URL = import.meta.env.PUBLIC_API_URL;
   
   const form = document.getElementById('comment-form') as HTMLFormElement;
   const messageDiv = document.getElementById('message') as HTMLDivElement;
@@ -355,13 +355,12 @@ button * {
   
  // Charger les commentaires existants
   async function loadComments() {
-    const { data, error } = await supabase
-      .from('commentaires')
-      .select('*')
-      .eq('post_id', postSlug)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
+    let data;
+    try {
+      const res = await fetch(`${API_URL}/commentaires?post_id=${encodeURIComponent(postSlug)}`);
+      if (!res.ok) throw new Error();
+      data = await res.json();
+    } catch {
       commentsContainer.innerHTML = '<p>Erreur lors du chargement des commentaires.</p>';
       return;
     }
@@ -420,44 +419,27 @@ button * {
     const note = parseInt((document.querySelector('input[name="note"]:checked') as HTMLInputElement).value);
     const commentaire = (document.getElementById('commentaire') as HTMLTextAreaElement).value;
     
-const { error } = await supabase
-  .from('commentaires')
-  .insert([
-    { post_id: postSlug, auteur, note, commentaire }
-  ]);
+let error = null;
+try {
+  const res = await fetch(`${API_URL}/commentaires`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ post_id: postSlug, auteur, note, commentaire }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    error = new Error(data.error || 'Erreur réseau');
+  }
+} catch (e) {
+  error = new Error('Erreur réseau');
+}
 
 if (error) {
-  console.error('Erreur Supabase:', error);
+  console.error('Erreur API:', error);
   messageDiv.textContent = 'Erreur : ' + error.message;
   messageDiv.className = 'error';
 } else {
-  // Envoyer une notification Telegram
-  const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
-  const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
-  
-  const notificationMessage = `📝 Nouveau commentaire sur le blog !\n\n` +
-    `👤 Auteur : ${auteur}\n` +
-    `⭐ Note : ${note}/5\n` +
-    `📄 Post : ${postSlug}\n` +
-    `💬 Commentaire : "${commentaire}"\n\n` +
-    `🕐 ${new Date().toLocaleString('fr-FR')}`;
-  
-  try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: notificationMessage,
-      }),
-    });
-  } catch (telegramError) {
-    console.error('Erreur notification Telegram:', telegramError);
-    // On n'affiche pas l'erreur à l'utilisateur, le commentaire est quand même enregistré
-  }
-  
+  // La notification Telegram est envoyée par le Worker
   messageDiv.textContent = 'Commentaire publié avec succès !';
   messageDiv.className = 'success';
   form.reset();

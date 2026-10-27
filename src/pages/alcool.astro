@@ -1,0 +1,560 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// capacite = volume (en cl) d'un "contenant plein"
+const drinks = [
+    {
+        key: 'biere',
+        nom: 'Bière',
+        emoji: '🍺',
+        color: '#f5a623',
+        capacite: 50,
+        contenant: 'pinte',
+        foam: true,
+        shape: 'M25 15 L95 15 L88 185 Q88 190 83 190 L37 190 Q32 190 32 185 Z',
+        boutons: [
+            { label: 'Demi', cl: 25 },
+            { label: 'Pinte', cl: 50 },
+        ],
+    },
+    {
+        key: 'vin',
+        nom: 'Vin',
+        emoji: '🍷',
+        color: '#9b1d4a',
+        capacite: 75,
+        contenant: 'bouteille',
+        foam: false,
+        shape: 'M52 5 L68 5 L68 55 Q95 70 95 105 L95 185 Q95 195 85 195 L35 195 Q25 195 25 185 L25 105 Q25 70 52 55 Z',
+        boutons: [
+            { label: 'Verre', cl: 12 },
+            { label: 'Grand verre', cl: 18 },
+        ],
+    },
+    {
+        key: 'autre',
+        nom: 'Autre',
+        emoji: '🥃',
+        color: '#2bb3a3',
+        capacite: 70,
+        contenant: 'bouteille',
+        foam: false,
+        label: true,
+        shape: 'M50 5 L70 5 L70 40 Q98 52 98 85 L98 185 Q98 195 88 195 L32 195 Q22 195 22 185 L22 85 Q22 52 50 40 Z',
+        boutons: [
+            { label: 'Shot', cl: 4 },
+            { label: 'Cocktail', cl: 15 },
+        ],
+    },
+];
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <BaseHead title="Le compteur 🍻" description="Compteur de boissons" />
+</head>
+<body>
+    <Header />
+
+    <main>
+        <div class="counter-page">
+            <h1>🍻 Le compteur</h1>
+            <p class="subtitle">Chaque gorgée compte. Remplis, trinque, recommence.</p>
+
+            <div class="total-card">
+                <span class="total-label">Total général</span>
+                <span class="total-value"><span id="total-liters">0.00</span> L</span>
+            </div>
+
+            <div class="drinks-grid">
+                {drinks.map((d) => (
+                    <section class="drink-card" style={`--accent: ${d.color}`}>
+                        <h2>{d.emoji} {d.nom}</h2>
+
+                        <div class="bottle-wrap" id={`wrap-${d.key}`}>
+                            <svg viewBox="0 0 120 200" class="bottle" aria-hidden="true">
+                                <defs>
+                                    <clipPath id={`clip-${d.key}`}>
+                                        <path d={d.shape}></path>
+                                    </clipPath>
+                                </defs>
+
+                                <g clip-path={`url(#clip-${d.key})`}>
+                                    <rect x="0" y="0" width="120" height="200" fill="#f1f3f7"></rect>
+                                    <g class="liquid" id={`liquid-${d.key}`} style="transform: translateY(200px)">
+                                        <rect x="-20" y="0" width="160" height="220" fill={d.color}></rect>
+                                        <path
+                                            class="wave"
+                                            d="M-60 0 Q-45 -6 -30 0 T0 0 T30 0 T60 0 T90 0 T120 0 T150 0 T180 0 V10 H-60 Z"
+                                            fill={d.color}
+                                            opacity="0.7"
+                                            transform="translate(0 -5)"
+                                        ></path>
+                                        {d.foam && <rect x="-20" y="-14" width="160" height="14" fill="#fff8e1"></rect>}
+                                    </g>
+                                    {d.label && (
+                                        <g>
+                                            <rect x="35" y="95" width="50" height="45" rx="4" fill="#ffffff" opacity="0.92"></rect>
+                                            <text x="60" y="123" text-anchor="middle" font-size="12" font-weight="700" fill="#2bb3a3" letter-spacing="1">AUTRE</text>
+                                        </g>
+                                    )}
+                                </g>
+
+                                <path d={d.shape} fill="none" stroke="#2d3142" stroke-width="3" stroke-linejoin="round"></path>
+                            </svg>
+                            <span class="pct" id={`pct-${d.key}`}>0%</span>
+                        </div>
+
+                        <div class="buttons">
+                            {d.boutons.map((b) => (
+                                <button class="add-btn" data-cat={d.key} data-cl={b.cl}>
+                                    + {b.label} <small>{b.cl} cl</small>
+                                </button>
+                            ))}
+                            <button class="undo-btn" data-cat={d.key}>↩︎ Annuler le dernier</button>
+                        </div>
+
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-value"><span id={`liters-${d.key}`}>0.00</span> L</span>
+                                <span class="stat-label">bus au total</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id={`full-${d.key}`}>0</span>
+                                <span class="stat-label">{d.contenant}s remplie{d.contenant === 'pinte' ? 's' : 's'}</span>
+                            </div>
+                        </div>
+                    </section>
+                ))}
+            </div>
+
+            <div id="status"></div>
+        </div>
+    </main>
+
+    <Footer />
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .counter-page {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.3rem;
+            color: #2d3142;
+        }
+
+        .subtitle {
+            color: #7a8094;
+            margin: 0 0 2rem 0;
+            font-size: 1.1rem;
+        }
+
+        .total-card {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            padding: 1rem 2.5rem;
+            background: white;
+            border: 2px solid #e6e9f0;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2.5rem;
+        }
+
+        .total-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #7a8094;
+        }
+
+        .total-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2d3142;
+        }
+
+        .drinks-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .drink-card {
+            background: white;
+            border: 2px solid #e6e9f0;
+            border-radius: 24px;
+            padding: 1.5rem 1rem 1.8rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .drink-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .drink-card h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #2d3142;
+        }
+
+        .bottle-wrap {
+            position: relative;
+            width: 150px;
+        }
+
+        .bottle {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.12));
+        }
+
+        .bottle-wrap.glug {
+            animation: glug 0.5s ease;
+        }
+
+        .bottle-wrap.celebrate {
+            animation: celebrate 0.9s ease;
+        }
+
+        .pct {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.15rem 0.7rem;
+            border-radius: 20px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .liquid {
+            transition: transform 0.9s cubic-bezier(0.34, 1.2, 0.5, 1);
+        }
+
+        .liquid.no-transition {
+            transition: none;
+        }
+
+        .wave {
+            animation: wave 2.5s linear infinite;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            width: 100%;
+            margin-top: 0.8rem;
+        }
+
+        .add-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .add-btn small {
+            opacity: 0.85;
+            font-weight: 500;
+            margin-left: 0.3rem;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 7px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        .add-btn:active {
+            transform: scale(0.96);
+        }
+
+        .add-btn:disabled,
+        .undo-btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .undo-btn {
+            background: transparent;
+            border: none;
+            color: #9aa0b4;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0.2rem;
+        }
+
+        .undo-btn:hover {
+            color: #2d3142;
+            text-decoration: underline;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 0.3rem;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2d3142;
+            display: inline-block;
+        }
+
+        .stat-value.bump {
+            animation: bump 0.5s ease;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #7a8094;
+        }
+
+        #status {
+            margin-top: 1.5rem;
+            min-height: 1.5rem;
+            color: #c0392b;
+            font-weight: 600;
+        }
+
+        @keyframes wave {
+            from { transform: translate(0px, -5px); }
+            to { transform: translate(-60px, -5px); }
+        }
+
+        @keyframes glug {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-6deg) scale(1.04); }
+            60% { transform: rotate(4deg) scale(1.04); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.15) rotate(-8deg); }
+            40% { transform: scale(1.15) rotate(8deg); }
+            60% { transform: scale(1.15) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes bump {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 900px) {
+            .drinks-grid {
+                grid-template-columns: 1fr;
+                max-width: 420px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Configuration (doit rester cohérente avec le frontmatter)
+        const CAPACITES = { biere: 50, vin: 75, autre: 70 };
+        const API_URL = import.meta.env.PUBLIC_API_URL;
+        const totals = { biere: 0, vin: 0, autre: 0 };
+        const statusDiv = document.getElementById('status');
+
+        // Appel à l'API : renvoie le JSON, ou lève une erreur avec le message du serveur
+        async function api(path, options = {}) {
+            const res = await fetch(`${API_URL}${path}`, options);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Erreur réseau');
+            return data;
+        }
+
+        // Remplace les totaux locaux par ceux du serveur
+        function applyTotals(serverTotals) {
+            Object.keys(CAPACITES).forEach((cat) => {
+                totals[cat] = Number(serverTotals[cat]) || 0;
+            });
+        }
+
+        function showError(msg) {
+            statusDiv.textContent = msg;
+            setTimeout(() => (statusDiv.textContent = ''), 4000);
+        }
+
+        function bump(el) {
+            el.classList.remove('bump');
+            void el.offsetWidth;
+            el.classList.add('bump');
+        }
+
+        // Met à jour les chiffres (litres, nombre de contenants pleins, %)
+        function renderStats(cat, animate = false) {
+            const cap = CAPACITES[cat];
+            const total = totals[cat];
+            const fullEl = document.getElementById(`full-${cat}`);
+            const newFull = Math.floor(total / cap);
+
+            document.getElementById(`liters-${cat}`).textContent = (total / 100).toFixed(2);
+            document.getElementById(`pct-${cat}`).textContent = Math.round(((total % cap) / cap) * 100) + '%';
+
+            if (animate && String(newFull) !== fullEl.textContent) bump(fullEl);
+            fullEl.textContent = newFull;
+
+            const all = totals.biere + totals.vin + totals.autre;
+            document.getElementById('total-liters').textContent = (all / 100).toFixed(2);
+        }
+
+        // Niveau du liquide (0 à 1)
+        function setLevel(cat, fraction) {
+            const liquid = document.getElementById(`liquid-${cat}`);
+            liquid.style.transform = `translateY(${200 - fraction * 200}px)`;
+        }
+
+        // Ajoute du volume avec animation (bouteille pleine -> on vide et on repart avec le reste)
+        async function animateAdd(cat, before, after) {
+            const cap = CAPACITES[cat];
+            const wrap = document.getElementById(`wrap-${cat}`);
+            const liquid = document.getElementById(`liquid-${cat}`);
+
+            wrap.classList.remove('glug', 'celebrate');
+            void wrap.offsetWidth;
+
+            if (Math.floor(after / cap) > Math.floor(before / cap)) {
+                setLevel(cat, 1);
+                wrap.classList.add('celebrate');
+                await new Promise((r) => setTimeout(r, 1000));
+                liquid.classList.add('no-transition');
+                setLevel(cat, 0);
+                void liquid.offsetWidth;
+                liquid.classList.remove('no-transition');
+                await new Promise((r) => setTimeout(r, 50));
+                setLevel(cat, (after % cap) / cap);
+            } else {
+                setLevel(cat, (after % cap) / cap);
+                wrap.classList.add('glug');
+            }
+        }
+
+        // Réaffiche chiffres et niveaux des trois contenants
+        function renderAll() {
+            Object.keys(CAPACITES).forEach((cat) => {
+                renderStats(cat);
+                setLevel(cat, (totals[cat] % CAPACITES[cat]) / CAPACITES[cat]);
+            });
+        }
+
+        // Charger les données au démarrage
+        async function init() {
+            try {
+                applyTotals(await api('/boissons'));
+            } catch (e) {
+                showError('Impossible de charger le compteur.');
+            }
+
+            Object.keys(CAPACITES).forEach((cat) => {
+                renderStats(cat);
+                // petit délai pour que l'animation de remplissage se voie au chargement
+                setTimeout(() => setLevel(cat, (totals[cat] % CAPACITES[cat]) / CAPACITES[cat]), 200);
+            });
+        }
+
+        // Boutons "+"
+        document.querySelectorAll('.add-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const cat = btn.dataset.cat;
+                const cl = Number(btn.dataset.cl);
+
+                // Mise à jour immédiate de l'affichage, puis enregistrement côté serveur
+                const before = totals[cat];
+                totals[cat] += cl;
+                renderStats(cat, true);
+                const animation = animateAdd(cat, before, totals[cat]);
+
+                try {
+                    applyTotals(await api('/boissons', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categorie: cat, volume_cl: cl }),
+                    }));
+                } catch (e) {
+                    totals[cat] = Math.max(0, totals[cat] - cl);
+                    showError("Impossible d'enregistrer, réessaie.");
+                }
+
+                await animation;
+                renderAll();
+            });
+        });
+
+        // Boutons "Annuler le dernier"
+        document.querySelectorAll('.undo-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const cat = btn.dataset.cat;
+
+                try {
+                    applyTotals(await api(`/boissons/dernier?categorie=${encodeURIComponent(cat)}`, {
+                        method: 'DELETE',
+                    }));
+                } catch (e) {
+                    showError(e.message === 'Rien à annuler.' ? e.message : "Impossible d'annuler, réessaie.");
+                    return;
+                }
+
+                renderAll();
+            });
+        });
+
+        init();
+    </script>
+</body>
+</html>

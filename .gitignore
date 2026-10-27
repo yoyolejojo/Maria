@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Worker Cloudflare (secrets locaux et état D1 local)
+api-worker/.dev.vars*
+!api-worker/.dev.vars.example
+api-worker/.wrangler/
+api-worker/node_modules/

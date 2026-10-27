@@ -1,0 +1,4 @@
+# Copier en .dev.vars (jamais commité) pour wrangler dev
+ALLOWED_ORIGINS=http://localhost:4321,http://192.168.1.46:4321
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
