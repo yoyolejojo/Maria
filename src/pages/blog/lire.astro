@@ -1,0 +1,238 @@
+---
+// Lecture d'un article écrit depuis le site : /blog/lire/?id=12
+// Même mise en page que le layout BlogPost des articles Markdown, remplie côté navigateur.
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import CommentSection from '../../components/CommentSection.astro';
+import { SITE_TITLE } from '../../consts';
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description="Article" />
+		<style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+			.hero-image {
+				width: 100%;
+			}
+			.hero-image img {
+				display: block;
+				width: 1020px;
+				max-width: 100%;
+				height: auto;
+				aspect-ratio: 2 / 1;
+				object-fit: cover;
+				margin: 0 auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+			}
+			.prose {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				position: relative;
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.title h1 {
+				margin: 0 0 0.5em 0;
+			}
+			.date {
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray));
+			}
+			.status {
+				text-align: center;
+				color: rgb(var(--gray));
+				padding: 3em 0;
+			}
+
+			/* Photos insérées dans le texte (créées en JS, donc styles globaux) */
+			#post-content :global(.post-photo) {
+				display: block;
+				width: 100%;
+				height: auto;
+				margin: 1.5em 0;
+				border-radius: 12px;
+			}
+
+			/* Menu ⋯ */
+			.post-menu {
+				position: absolute;
+				top: 0.5em;
+				right: 0;
+			}
+			.menu-toggle {
+				width: 40px;
+				height: 40px;
+				border: none;
+				border-radius: 50%;
+				background: transparent;
+				color: rgb(var(--gray));
+				font-size: 1.6rem;
+				line-height: 1;
+				cursor: pointer;
+				transition: background 0.2s ease;
+			}
+			.menu-toggle:hover,
+			.post-menu.open .menu-toggle {
+				background: rgba(0, 0, 0, 0.06);
+			}
+			.menu-items {
+				position: absolute;
+				right: 0;
+				top: calc(100% + 0.3em);
+				z-index: 10;
+				min-width: 170px;
+				padding: 0.4em;
+				background: white;
+				border: 1px solid #eee;
+				border-radius: 12px;
+				box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+				text-align: left;
+			}
+			.menu-items a,
+			.menu-items button {
+				display: block;
+				width: 100%;
+				padding: 0.7em 0.9em;
+				border: none;
+				border-radius: 8px;
+				background: none;
+				color: rgb(var(--gray-dark));
+				font: inherit;
+				font-size: 0.95rem;
+				text-align: left;
+				text-decoration: none;
+				cursor: pointer;
+			}
+			.menu-items a:hover,
+			.menu-items button:hover {
+				background: #f5f7ff;
+			}
+			.menu-items .danger:hover {
+				background: #fdecea;
+				color: #c0392b;
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<p class="status" id="status">Chargement…</p>
+			<article id="post" hidden>
+				<div class="hero-image" id="hero"></div>
+				<div class="prose">
+					<div class="title">
+						<div class="post-menu" id="post-menu">
+							<button class="menu-toggle" id="menu-toggle" type="button" aria-label="Options de l'article" aria-expanded="false" aria-haspopup="true">⋯</button>
+							<div class="menu-items" id="menu-items" hidden>
+								<a id="edit-link" href="#">✏️ Modifier</a>
+								<button class="danger" id="delete-btn" type="button">🗑️ Supprimer</button>
+							</div>
+						</div>
+						<div class="date"><time id="post-date"></time></div>
+						<h1 id="post-title"></h1>
+						<hr />
+					</div>
+					<div id="post-content"></div>
+					<CommentSection />
+				</div>
+			</article>
+		</main>
+		<Footer />
+
+		<script>
+			import { api, formatDate, photoUrl, renderContenu, type Post } from '../../scripts/posts';
+
+			const id = Number(new URLSearchParams(location.search).get('id'));
+			const status = document.getElementById('status') as HTMLParagraphElement;
+			const article = document.getElementById('post') as HTMLElement;
+			const menu = document.getElementById('post-menu') as HTMLDivElement;
+			const toggle = document.getElementById('menu-toggle') as HTMLButtonElement;
+			const items = document.getElementById('menu-items') as HTMLDivElement;
+
+			async function loadPost() {
+				if (!Number.isInteger(id) || id <= 0) {
+					status.textContent = 'Article introuvable.';
+					return;
+				}
+
+				let post: Post;
+				try {
+					post = await api<Post>(`/posts/${id}`);
+				} catch (e) {
+					status.textContent = (e as Error).message === 'Article introuvable' ? 'Article introuvable.' : 'Erreur lors du chargement.';
+					return;
+				}
+
+				document.title = `${post.titre} | Maria`;
+				(document.getElementById('post-title') as HTMLElement).textContent = post.titre;
+				const time = document.getElementById('post-date') as HTMLTimeElement;
+				time.dateTime = post.pub_date;
+				time.textContent = formatDate(post.pub_date);
+
+				if (post.hero_photo_id) {
+					const img = document.createElement('img');
+					img.src = photoUrl(post.hero_photo_id);
+					img.alt = '';
+					// Même attribut de portée que le conteneur, pour le style .hero-image img
+					const hero = document.getElementById('hero') as HTMLDivElement;
+					const scope = hero.getAttributeNames().find((n) => n.startsWith('data-astro-cid'));
+					if (scope) img.setAttribute(scope, '');
+					hero.append(img);
+				}
+
+				renderContenu(post.contenu, document.getElementById('post-content') as HTMLElement);
+				(document.getElementById('edit-link') as HTMLAnchorElement).href = `/blog/ecrire/?id=${post.id}`;
+
+				status.hidden = true;
+				article.hidden = false;
+			}
+
+			// ---------- Menu ⋯ ----------
+
+			function setMenu(open: boolean) {
+				menu.classList.toggle('open', open);
+				items.hidden = !open;
+				toggle.setAttribute('aria-expanded', String(open));
+			}
+
+			toggle.addEventListener('click', (e) => {
+				e.stopPropagation();
+				setMenu(items.hidden);
+			});
+			document.addEventListener('click', (e) => {
+				if (!menu.contains(e.target as Node)) setMenu(false);
+			});
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') setMenu(false);
+			});
+
+			document.getElementById('delete-btn')!.addEventListener('click', async () => {
+				setMenu(false);
+				if (!confirm('Supprimer cet article ? Ses photos et ses commentaires seront supprimés aussi.')) return;
+				try {
+					await api(`/posts/${id}`, { method: 'DELETE' });
+					location.href = '/blog/';
+				} catch (e) {
+					alert('Erreur : ' + (e as Error).message);
+				}
+			});
+
+			loadPost();
+		</script>
+	</body>
+</html>

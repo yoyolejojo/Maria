@@ -69,7 +69,59 @@ const posts = (await getCollection('blog')).sort(
 			ul a:hover img {
 				box-shadow: var(--box-shadow);
 			}
+			.toolbar {
+				display: flex;
+				justify-content: flex-end;
+				margin-bottom: 2rem;
+			}
+			.new-post {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.6rem;
+				padding: 0.4rem 1.2rem 0.4rem 0.4rem;
+				background: white;
+				border: 1px solid #e6e6e6;
+				border-radius: 50px;
+				color: #333;
+				font-weight: 600;
+				text-decoration: none;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+				transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+			}
+			.new-post:hover {
+				transform: translateY(-1px);
+				border-color: #d6d6d6;
+				box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+			}
+			/* La touche léopard : une pastille ronde avec le + */
+			.new-post .badge {
+				display: grid;
+				place-items: center;
+				width: 34px;
+				height: 34px;
+				border-radius: 50%;
+				background-image: url('/Leopard.jpg');
+				background-size: 220%;
+				background-position: center;
+				box-shadow: inset 0 0 0 40px rgba(0, 0, 0, 0.28);
+				color: white;
+				font-size: 1.3rem;
+				font-weight: 700;
+				line-height: 1;
+				text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+			}
+			/* Couverture des articles écrits depuis le site : même cadrage 2:1 que les anciens */
+			.db-cover {
+				width: 100%;
+				height: auto;
+				aspect-ratio: 2 / 1;
+				object-fit: cover;
+			}
 			@media (max-width: 720px) {
+				.toolbar {
+					justify-content: center;
+					margin-bottom: 1.5rem;
+				}
 				ul {
 					gap: 0.5em;
 				}
@@ -90,10 +142,13 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<section>
-				<ul>
+				<div class="toolbar">
+					<a class="new-post" href="/blog/ecrire/"><span class="badge" aria-hidden="true">+</span>Nouveau post</a>
+				</div>
+				<ul id="posts-list">
 					{
 						posts.map((post) => (
-							<li>
+							<li data-date={post.data.pubDate.valueOf()}>
 								<a href={`/blog/${post.id}/`}>
 									{post.data.heroImage && (
 										<Image width={720} height={360} src={post.data.heroImage} alt="" />
@@ -110,5 +165,64 @@ const posts = (await getCollection('blog')).sort(
 			</section>
 		</main>
 		<Footer />
+
+		<script>
+			import { api, formatDate, parseDay, photoUrl, postUrl, type Post } from '../../scripts/posts';
+
+			// Ajoute les articles écrits depuis le site à la liste des articles Markdown, triés par date
+			const list = document.getElementById('posts-list') as HTMLUListElement;
+			// Attribut de portée Astro, pour que les styles de la page s'appliquent aux éléments créés ici
+			const scope = list.getAttributeNames().find((n) => n.startsWith('data-astro-cid')) || '';
+
+			function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string) {
+				const node = document.createElement(tag);
+				if (scope) node.setAttribute(scope, '');
+				if (className) node.className = className;
+				return node;
+			}
+
+			function postItem(post: Post) {
+				const li = el('li');
+				// Un article du site passe avant un ancien article du même jour
+				li.dataset.date = String(parseDay(post.pub_date).valueOf() + 1);
+
+				const a = el('a');
+				a.href = postUrl(post.id);
+				if (post.hero_photo_id) {
+					const img = el('img', 'db-cover');
+					img.src = photoUrl(post.hero_photo_id);
+					img.alt = '';
+					img.width = 720;
+					img.height = 360;
+					img.loading = 'lazy';
+					a.append(img);
+				}
+				const title = el('h4', 'title');
+				title.textContent = post.titre;
+				const date = el('p', 'date');
+				const time = el('time');
+				time.dateTime = post.pub_date;
+				time.textContent = formatDate(post.pub_date);
+				date.append(time);
+				a.append(title, date);
+				li.append(a);
+				return li;
+			}
+
+			async function loadPosts() {
+				let posts: Post[];
+				try {
+					posts = await api<Post[]>('/posts');
+				} catch (e) {
+					console.error('Articles du site indisponibles :', e);
+					return;
+				}
+				const items = [...list.children, ...posts.map(postItem)] as HTMLElement[];
+				items.sort((a, b) => Number(b.dataset.date) - Number(a.dataset.date));
+				list.replaceChildren(...items);
+			}
+
+			loadPosts();
+		</script>
 	</body>
 </html>

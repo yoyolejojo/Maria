@@ -1,0 +1,567 @@
+---
+// Écriture d'un article depuis le site : /blog/ecrire/ (nouveau) ou /blog/ecrire/?id=12 (modification)
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+---
+
+<!doctype html>
+<html lang="fr">
+	<head>
+		<BaseHead title="Nouveau post" description="Écrire un article" />
+		<style>
+			main {
+				width: 760px;
+				max-width: calc(100% - 2em);
+			}
+			h1 {
+				text-align: center;
+				color: #333;
+				margin-bottom: 1.5rem;
+			}
+			.card {
+				background: white;
+				padding: 2rem;
+				border-radius: 20px;
+				box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+				border: 1px solid #f0f0f0;
+			}
+			.form-group {
+				margin-bottom: 1.5rem;
+			}
+			label,
+			.label {
+				display: block;
+				margin-bottom: 0.5rem;
+				font-weight: 600;
+				color: #555;
+				font-size: 0.95rem;
+			}
+			input[type='text'],
+			input[type='date'],
+			textarea {
+				width: 100%;
+				box-sizing: border-box;
+				padding: 0.9rem;
+				border: 2px solid #e0e0e0;
+				border-radius: 12px;
+				font-family: inherit;
+				font-size: 1rem;
+				background: #fafafa;
+				transition: all 0.3s ease;
+			}
+			input[type='text']:focus,
+			input[type='date']:focus,
+			textarea:focus {
+				outline: none;
+				border-color: #667eea;
+				background: white;
+				box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+			}
+			input[type='date'] {
+				max-width: 220px;
+			}
+			textarea {
+				min-height: 320px;
+				resize: vertical;
+				line-height: 1.6;
+			}
+
+			/* Boutons secondaires (photo, retirer) */
+			.soft-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				padding: 0.6rem 1.1rem;
+				border: 2px solid #e0e0e0;
+				border-radius: 50px;
+				background: white;
+				color: #555;
+				font: inherit;
+				font-size: 0.9rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.soft-btn[hidden] {
+				display: none;
+			}
+			.soft-btn:hover {
+				border-color: #667eea;
+				background: #f5f7ff;
+				color: #667eea;
+			}
+			.soft-btn:disabled {
+				opacity: 0.6;
+				cursor: wait;
+			}
+			.text-toolbar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+				margin-bottom: 0.5rem;
+			}
+			.text-toolbar label {
+				margin: 0;
+			}
+
+			.cover {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.cover img {
+				width: 240px;
+				max-width: 100%;
+				aspect-ratio: 2 / 1;
+				object-fit: cover;
+				border-radius: 12px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+			}
+
+			.actions {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				justify-content: flex-end;
+				flex-wrap: wrap;
+			}
+			.cancel {
+				color: #999;
+				text-decoration: none;
+			}
+			.cancel:hover {
+				color: #667eea;
+			}
+			.publish {
+				position: relative;
+				overflow: hidden;
+				background-image: url('/Leopard.jpg');
+				background-size: cover;
+				background-position: center;
+				color: white;
+				padding: 1rem 2.5rem;
+				border: none;
+				border-radius: 50px;
+				cursor: pointer;
+				font: inherit;
+				font-size: 1.1rem;
+				font-weight: 700;
+				text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+				transition: all 0.3s ease;
+			}
+			.publish::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.3);
+			}
+			.publish span {
+				position: relative;
+			}
+			.publish:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+			}
+			.publish:disabled {
+				opacity: 0.7;
+				cursor: wait;
+				transform: none;
+			}
+
+			#message {
+				margin-top: 1.2rem;
+				text-align: center;
+				font-weight: 500;
+				min-height: 1.4em;
+			}
+			#message.error {
+				color: #721c24;
+			}
+			#message.info {
+				color: #667eea;
+			}
+
+			.preview {
+				margin-top: 2.5rem;
+			}
+			.preview h2 {
+				font-size: 1.1rem;
+				color: #999;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				text-align: center;
+			}
+			.preview-body {
+				padding: 1.5rem 2rem;
+				border: 2px dashed #e0e0e0;
+				border-radius: 20px;
+				color: rgb(var(--gray-dark));
+			}
+			.preview-body :global(.post-photo) {
+				display: block;
+				width: 100%;
+				height: auto;
+				margin: 1.5em 0;
+				border-radius: 12px;
+			}
+			.preview-empty {
+				color: #bbb;
+				text-align: center;
+				font-style: italic;
+			}
+
+			/* Fenêtre de recadrage de la couverture */
+			.crop-modal {
+				position: fixed;
+				inset: 0;
+				z-index: 2000;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 1rem;
+				background: rgba(15, 15, 20, 0.75);
+				-webkit-backdrop-filter: blur(8px);
+				backdrop-filter: blur(8px);
+			}
+			.crop-modal[hidden] {
+				display: none;
+			}
+			.crop-dialog {
+				width: min(820px, 100%);
+				padding: 1.5rem;
+				background: white;
+				border-radius: 20px;
+				box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+			}
+			.crop-dialog h2 {
+				margin: 0 0 1rem;
+				font-size: 1.2rem;
+				color: #333;
+				text-align: center;
+			}
+			.crop-stage {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 2 / 1;
+				overflow: hidden;
+				border-radius: 12px;
+				background: #111;
+				cursor: grab;
+				touch-action: none;
+				user-select: none;
+			}
+			.crop-stage:active {
+				cursor: grabbing;
+			}
+			.crop-stage :global(.crop-source) {
+				position: absolute;
+				top: 0;
+				left: 0;
+				transform-origin: 0 0;
+				pointer-events: none;
+			}
+			.crop-zoom {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+				margin: 1.2rem 0;
+				color: #999;
+			}
+			.crop-zoom input {
+				flex: 1;
+				accent-color: #667eea;
+			}
+			.crop-actions {
+				display: flex;
+				justify-content: flex-end;
+				gap: 0.8rem;
+			}
+			.crop-actions .confirm {
+				border-color: #667eea;
+				background: #667eea;
+				color: white;
+				font-weight: 600;
+			}
+			.crop-actions .confirm:hover {
+				background: #5a6fd6;
+				color: white;
+			}
+
+			@media (max-width: 720px) {
+				.crop-dialog {
+					padding: 1rem;
+				}
+				h1 {
+					font-size: 2rem;
+				}
+				.card {
+					padding: 1.3rem;
+				}
+				.preview-body {
+					padding: 1rem 1.2rem;
+				}
+				.publish {
+					width: 100%;
+				}
+				.actions {
+					flex-direction: column-reverse;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<h1 id="page-title">✏️ Nouveau post</h1>
+
+			<form id="post-form" class="card" novalidate>
+				<div class="form-group">
+					<label for="titre">Titre</label>
+					<input type="text" id="titre" maxlength="200" required placeholder="Un très beau moment" />
+				</div>
+
+				<div class="form-group">
+					<label for="pub-date">Date</label>
+					<input type="date" id="pub-date" required />
+				</div>
+
+				<div class="form-group">
+					<span class="label">Photo de couverture</span>
+					<div class="cover">
+						<img id="cover-preview" alt="" hidden />
+						<button type="button" class="soft-btn" id="cover-btn">📷 Choisir une photo</button>
+						<button type="button" class="soft-btn" id="cover-remove" hidden>Retirer</button>
+					</div>
+					<input type="file" id="cover-input" accept="image/*" hidden />
+				</div>
+
+				<div class="form-group">
+					<div class="text-toolbar">
+						<label for="contenu">Texte</label>
+						<button type="button" class="soft-btn" id="photo-btn">📷 Insérer une photo</button>
+					</div>
+					<textarea id="contenu" required placeholder="Écris ici… Chaque retour à la ligne crée un nouveau paragraphe."></textarea>
+					<input type="file" id="photo-input" accept="image/*" hidden />
+				</div>
+
+				<div class="actions">
+					<a class="cancel" id="cancel-link" href="/blog/">Annuler</a>
+					<button type="submit" class="publish" id="publish-btn"><span>Publier</span></button>
+				</div>
+				<div id="message" role="status"></div>
+			</form>
+
+			<section class="preview">
+				<h2>Aperçu</h2>
+				<div class="preview-body" id="preview">
+					<p class="preview-empty">Le texte apparaîtra ici.</p>
+				</div>
+			</section>
+		</main>
+
+		<div class="crop-modal" id="crop-modal" hidden role="dialog" aria-modal="true" aria-labelledby="crop-title">
+			<div class="crop-dialog">
+				<h2 id="crop-title">Recadrer la couverture</h2>
+				<div class="crop-stage" id="crop-stage"></div>
+				<div class="crop-zoom">
+					<span aria-hidden="true">🔍</span>
+					<input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+				</div>
+				<div class="crop-actions">
+					<button type="button" class="soft-btn" id="crop-cancel">Annuler</button>
+					<button type="button" class="soft-btn confirm" id="crop-confirm">Valider</button>
+				</div>
+			</div>
+		</div>
+		<Footer />
+
+		<script>
+			import { createCropper } from '../../scripts/cropper';
+			import { api, encodeCanvas, photoLine, photoUrl, postUrl, renderContenu, today, uploadBlob, uploadPhoto, type Post } from '../../scripts/posts';
+
+			const editId = Number(new URLSearchParams(location.search).get('id')) || null;
+
+			const form = document.getElementById('post-form') as HTMLFormElement;
+			const titreInput = document.getElementById('titre') as HTMLInputElement;
+			const dateInput = document.getElementById('pub-date') as HTMLInputElement;
+			const contenuInput = document.getElementById('contenu') as HTMLTextAreaElement;
+			const coverPreview = document.getElementById('cover-preview') as HTMLImageElement;
+			const coverBtn = document.getElementById('cover-btn') as HTMLButtonElement;
+			const coverRemove = document.getElementById('cover-remove') as HTMLButtonElement;
+			const coverInput = document.getElementById('cover-input') as HTMLInputElement;
+			const photoBtn = document.getElementById('photo-btn') as HTMLButtonElement;
+			const photoInput = document.getElementById('photo-input') as HTMLInputElement;
+			const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement;
+			const messageDiv = document.getElementById('message') as HTMLDivElement;
+			const preview = document.getElementById('preview') as HTMLDivElement;
+
+			let heroPhotoId: number | null = null;
+			let uploads = 0;
+
+			function showMessage(text: string, kind: 'error' | 'info' | '' = '') {
+				messageDiv.textContent = text;
+				messageDiv.className = kind;
+			}
+
+			function updatePublishState() {
+				publishBtn.disabled = uploads > 0;
+			}
+
+			// ---------- Aperçu ----------
+
+			function updatePreview() {
+				if (contenuInput.value.trim()) {
+					renderContenu(contenuInput.value, preview);
+				} else {
+					preview.innerHTML = '<p class="preview-empty">Le texte apparaîtra ici.</p>';
+				}
+			}
+			contenuInput.addEventListener('input', updatePreview);
+
+			// ---------- Photos ----------
+
+			async function withUpload(button: HTMLButtonElement, upload: () => Promise<number>) {
+				const label = button.textContent;
+				uploads++;
+				updatePublishState();
+				button.disabled = true;
+				button.textContent = '⏳ Envoi…';
+				showMessage('');
+				try {
+					return await upload();
+				} catch (e) {
+					showMessage("Impossible d'envoyer la photo : " + (e as Error).message, 'error');
+					return null;
+				} finally {
+					uploads--;
+					updatePublishState();
+					button.disabled = false;
+					button.textContent = label;
+				}
+			}
+
+			function setCover(id: number | null) {
+				heroPhotoId = id;
+				coverPreview.hidden = id === null;
+				coverRemove.hidden = id === null;
+				if (id !== null) coverPreview.src = photoUrl(id);
+				coverBtn.textContent = id === null ? '📷 Choisir une photo' : '📷 Changer';
+			}
+
+			const cropper = createCropper({
+				modal: document.getElementById('crop-modal') as HTMLElement,
+				stage: document.getElementById('crop-stage') as HTMLElement,
+				zoom: document.getElementById('crop-zoom') as HTMLInputElement,
+				cancel: document.getElementById('crop-cancel') as HTMLButtonElement,
+				confirm: document.getElementById('crop-confirm') as HTMLButtonElement,
+			});
+
+			coverBtn.addEventListener('click', () => coverInput.click());
+			coverRemove.addEventListener('click', () => setCover(null));
+			coverInput.addEventListener('change', async () => {
+				const file = coverInput.files?.[0];
+				coverInput.value = '';
+				if (!file) return;
+
+				let cropped: HTMLCanvasElement | null;
+				try {
+					cropped = await cropper.crop(file);
+				} catch {
+					showMessage('Impossible de lire cette photo.', 'error');
+					return;
+				}
+				if (!cropped) return;
+
+				const id = await withUpload(coverBtn, async () => uploadBlob(await encodeCanvas(cropped)));
+				if (id !== null) setCover(id);
+			});
+
+			photoBtn.addEventListener('click', () => photoInput.click());
+			photoInput.addEventListener('change', async () => {
+				const file = photoInput.files?.[0];
+				photoInput.value = '';
+				if (!file) return;
+
+				// Position du curseur mémorisée avant l'envoi (le focus part sur le sélecteur de fichier)
+				const start = contenuInput.selectionStart;
+				const end = contenuInput.selectionEnd;
+				const id = await withUpload(photoBtn, () => uploadPhoto(file));
+				if (id === null) return;
+
+				// La photo occupe sa propre ligne
+				const before = contenuInput.value.slice(0, start);
+				const after = contenuInput.value.slice(end);
+				const prefix = before && !before.endsWith('\n') ? '\n' : '';
+				const suffix = after.startsWith('\n') ? '' : '\n';
+				const insert = `${prefix}${photoLine(id)}${suffix}`;
+				contenuInput.value = before + insert + after;
+				const cursor = before.length + insert.length;
+				contenuInput.focus();
+				contenuInput.setSelectionRange(cursor, cursor);
+				updatePreview();
+			});
+
+			// ---------- Chargement (modification) ----------
+
+			async function init() {
+				dateInput.value = today();
+				if (!editId) return;
+
+				document.getElementById('page-title')!.textContent = '✏️ Modifier le post';
+				document.title = 'Modifier le post';
+				(publishBtn.querySelector('span') as HTMLSpanElement).textContent = 'Enregistrer';
+				(document.getElementById('cancel-link') as HTMLAnchorElement).href = postUrl(editId);
+
+				try {
+					const post = await api<Post>(`/posts/${editId}`);
+					titreInput.value = post.titre;
+					dateInput.value = post.pub_date;
+					contenuInput.value = post.contenu;
+					setCover(post.hero_photo_id);
+					updatePreview();
+				} catch (e) {
+					showMessage("Impossible de charger l'article : " + (e as Error).message, 'error');
+					publishBtn.disabled = true;
+				}
+			}
+
+			// ---------- Publication ----------
+
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				if (uploads > 0) return;
+
+				if (!titreInput.value.trim() || !contenuInput.value.trim() || !dateInput.value) {
+					showMessage('Il faut au moins un titre, une date et du texte.', 'error');
+					return;
+				}
+
+				publishBtn.disabled = true;
+				showMessage(editId ? 'Enregistrement…' : 'Publication…', 'info');
+				try {
+					const post = await api<Post>(editId ? `/posts/${editId}` : '/posts', {
+						method: editId ? 'PUT' : 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							titre: titreInput.value,
+							pub_date: dateInput.value,
+							hero_photo_id: heroPhotoId,
+							contenu: contenuInput.value,
+						}),
+					});
+					location.href = postUrl(post.id);
+				} catch (err) {
+					showMessage('Erreur : ' + (err as Error).message, 'error');
+					publishBtn.disabled = false;
+				}
+			});
+
+			init();
+		</script>
+	</body>
+</html>

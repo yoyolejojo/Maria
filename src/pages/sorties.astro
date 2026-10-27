@@ -345,7 +345,7 @@ import Footer from '../components/Footer.astro';
     </style>
 
     <script>
-        const API_URL = import.meta.env.PUBLIC_API_URL;
+        import { API_URL } from '../scripts/api-url';
         
         const form = document.getElementById('sortie-form');
         const messageDiv = document.getElementById('message');

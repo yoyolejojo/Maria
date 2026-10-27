@@ -82,6 +82,8 @@ const valentineImage = "../assets/cat_val4.jpg"; // À CHANGER
     </style>
 
     <script>
+        import { API_URL } from '../scripts/api-url';
+
         // Lancer les paillettes !
         function launchConfetti() {
             const duration = 5000;
@@ -119,7 +121,7 @@ const valentineImage = "../assets/cat_val4.jpg"; // À CHANGER
         // Le Worker envoie le message Telegram (avec limite anti-spam)
         async function sendTelegramNotification() {
         try {
-            await fetch(`${import.meta.env.PUBLIC_API_URL}/notify/valentine`, {
+            await fetch(`${API_URL}/notify/valentine`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

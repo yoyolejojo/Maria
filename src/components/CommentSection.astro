@@ -1,9 +1,10 @@
 ---
 interface Props {
-  postSlug: string;
+  // Absent pour les articles écrits depuis le site : l'identifiant est lu dans l'URL (?id=)
+  postSlug?: string;
 }
 
-const { postSlug } = Astro.props;
+const { postSlug = '' } = Astro.props;
 ---
 
 <div class="comment-section">
@@ -343,19 +344,89 @@ button * {
     padding: 1rem;
   }
 }
+
+/* Éléments générés en JS (pas d'attribut de portée Astro) */
+.comments-list :global(.comment-actions) {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.comments-list :global(.comment-action) {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #999;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comments-list :global(.comment-action:hover) {
+  color: #667eea;
+  text-decoration: underline;
+}
+
+.comments-list :global(.comment-action.danger:hover) {
+  color: #c0392b;
+}
+
+.comments-list :global(.edit-form textarea) {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 90px;
+  padding: 0.8rem;
+  margin-top: 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.comments-list :global(.edit-form select) {
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.comments-list :global(.edit-error) {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.comments-list :global(.edited) {
+  font-style: italic;
+}
 </style>
 
 <script>
-  const API_URL = import.meta.env.PUBLIC_API_URL;
+  import { API_URL } from '../scripts/api-url';
   
   const form = document.getElementById('comment-form') as HTMLFormElement;
   const messageDiv = document.getElementById('message') as HTMLDivElement;
   const commentsContainer = document.getElementById('comments-container') as HTMLDivElement;
-  const postSlug = (document.getElementById('post-slug') as HTMLInputElement).value;
+  const postSlug = (document.getElementById('post-slug') as HTMLInputElement).value
+    || `/blog/lire/?id=${new URLSearchParams(location.search).get('id')}`;
+  
+  type Comment = {
+    id: number;
+    auteur: string;
+    commentaire: string;
+    note: number;
+    created_at: string;
+    updated_at: string | null;
+  };
+  
+  // Commentaires affichés, indexés par id (pour pré-remplir l'édition)
+  const commentsById = new Map<number, Comment>();
   
  // Charger les commentaires existants
   async function loadComments() {
-    let data;
+    let data: Comment[];
     try {
       const res = await fetch(`${API_URL}/commentaires?post_id=${encodeURIComponent(postSlug)}`);
       if (!res.ok) throw new Error();
@@ -365,6 +436,9 @@ button * {
       return;
     }
     
+    commentsById.clear();
+    data.forEach((c) => commentsById.set(c.id, c));
+    
     // Calculer la note moyenne
     if (data.length > 0) {
      const totalNotes = data.reduce((sum, comment) => sum + comment.note, 0);
@@ -373,17 +447,17 @@ button * {
       const emptyStars = 5 - fullStars;
       
       // Afficher les étoiles
-      const averageStars = document.getElementById('average-stars');
+      const averageStars = document.getElementById('average-stars')!;
       averageStars.innerHTML = 
         '⭐'.repeat(fullStars) + 
         '☆'.repeat(emptyStars);
             
-      document.getElementById('rating-count').textContent = 
+      document.getElementById('rating-count')!.textContent = 
         `${average.toFixed(1)}/5 (${data.length} avis)`;
     } else {
-      document.getElementById('average-stars').innerHTML = 
+      document.getElementById('average-stars')!.innerHTML = 
         '<span class="loading" style="font-size:20px;">Pas de note</span>';
-      document.getElementById('rating-count').textContent = '';
+      document.getElementById('rating-count')!.textContent = '';
     }
     
     // Afficher les commentaires
@@ -393,13 +467,19 @@ button * {
     }
     
     commentsContainer.innerHTML = data.map(comment => `
-      <div class="comment" style="margin-bottom: 2.5rem; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0;">
+      <div class="comment" data-id="${comment.id}" style="margin-bottom: 2.5rem; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid #f0f0f0;">
         <div class="comment-header">
           <span class="comment-author">${escapeHtml(comment.auteur)}</span>
           <span class="comment-rating">${'⭐'.repeat(comment.note)}${'☆'.repeat(5 - comment.note)}</span>
         </div>
-        <div class="comment-date">${new Date(comment.created_at).toLocaleDateString('fr-FR')}</div>
-        <div class="comment-text">${escapeHtml(comment.commentaire)}</div>
+        <div class="comment-date">${new Date(comment.created_at).toLocaleDateString('fr-FR')}${comment.updated_at ? ' <span class="edited">(modifié)</span>' : ''}</div>
+        <div class="comment-body">
+          <div class="comment-text">${escapeHtml(comment.commentaire)}</div>
+          <div class="comment-actions">
+            <button type="button" class="comment-action" data-action="edit">✏️ Modifier</button>
+            <button type="button" class="comment-action danger" data-action="delete">🗑️ Supprimer</button>
+          </div>
+        </div>
       </div>
     `).join('');
   }
@@ -411,7 +491,85 @@ button * {
     return div.innerHTML;
   }
   
-  // Soumettre un nouveau commentaire
+  // ---------- Modifier / supprimer ----------
+  
+  function showEditForm(card: HTMLElement, comment: Comment) {
+    const body = card.querySelector('.comment-body') as HTMLElement;
+    const options = [5, 4, 3, 2, 1]
+      .map((n) => `<option value="${n}" ${n === comment.note ? 'selected' : ''}>${'⭐'.repeat(n)}</option>`)
+      .join('');
+    body.innerHTML = `
+      <form class="edit-form">
+        <select name="note" aria-label="Note">${options}</select>
+        <textarea name="commentaire" maxlength="500" required>${escapeHtml(comment.commentaire)}</textarea>
+        <div class="comment-actions">
+          <button type="submit" class="comment-action">💾 Enregistrer</button>
+          <button type="button" class="comment-action" data-action="cancel">Annuler</button>
+        </div>
+        <div class="edit-error"></div>
+      </form>
+    `;
+    (body.querySelector('textarea') as HTMLTextAreaElement).focus();
+  }
+  
+  async function sendEdit(id: number, editForm: HTMLFormElement) {
+    const errorDiv = editForm.querySelector('.edit-error') as HTMLDivElement;
+    const commentaire = (editForm.elements.namedItem('commentaire') as HTMLTextAreaElement).value;
+    const note = parseInt((editForm.elements.namedItem('note') as HTMLSelectElement).value);
+    
+    try {
+      const res = await fetch(`${API_URL}/commentaires/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentaire, note }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Erreur réseau');
+      }
+      loadComments();
+    } catch (e) {
+      errorDiv.textContent = 'Erreur : ' + (e as Error).message;
+    }
+  }
+  
+  async function deleteComment(id: number) {
+    if (!confirm('Supprimer ce commentaire ?')) return;
+    try {
+      const res = await fetch(`${API_URL}/commentaires/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Erreur réseau');
+      }
+      loadComments();
+    } catch (e) {
+      alert('Erreur : ' + (e as Error).message);
+    }
+  }
+  
+  commentsContainer.addEventListener('click', (e) => {
+    const button = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+    if (!button) return;
+    const card = button.closest('.comment') as HTMLElement;
+    const id = Number(card.dataset.id);
+    const comment = commentsById.get(id);
+    if (!comment) return;
+    
+    if (button.dataset.action === 'edit') showEditForm(card, comment);
+    if (button.dataset.action === 'delete') deleteComment(id);
+    if (button.dataset.action === 'cancel') loadComments();
+  });
+  
+  commentsContainer.addEventListener('submit', (e) => {
+    const editForm = (e.target as HTMLElement).closest('.edit-form') as HTMLFormElement | null;
+    if (!editForm) return;
+    e.preventDefault();
+    const card = editForm.closest('.comment') as HTMLElement;
+    sendEdit(Number(card.dataset.id), editForm);
+  });
+  
+  // ---------- Nouveau commentaire ----------
+  
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -449,8 +607,8 @@ if (error) {
     messageDiv.textContent = '';
     messageDiv.className = '';
   }, 3000);
-}},
+}});
   
   // Charger les commentaires au chargement de la page
-  loadComments());
+  loadComments();
 </script>

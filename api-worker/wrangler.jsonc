@@ -9,9 +9,16 @@
     {
       "binding": "DB",
       "database_name": "maria-db",
-      // Remplacer par l'id affiché par `npx wrangler d1 create maria-db`
+      // Ne pas changer cet id : la base locale de test est rangée sous ce nom
       "database_id": "58cd728f-c615-4c00-8c9f-0df5fb48c20a",
       "migrations_dir": "migrations"
+    },
+    {
+      // Photos des articles, séparées pour garder maria-db légère (500 Mo max par base)
+      "binding": "PHOTOS",
+      "database_name": "maria-photos",
+      "database_id": "70256c22-5d70-4cda-a707-7dd20499877d",
+      "migrations_dir": "migrations-photos"
     }
   ],
 
@@ -24,9 +31,11 @@
     }
   ],
 
-  // En local, .dev.vars remplace cette valeur
+  // En local, .dev.vars remplace ces valeurs
   "vars": {
-    "ALLOWED_ORIGINS": "https://mariaetyoyo.netlify.app"
+    "ALLOWED_ORIGINS": "https://mariaetyoyo.netlify.app",
+    // "true" seulement dans .dev.vars : autorise les adresses du réseau local (test sur téléphone)
+    "DEV_ALLOW_LAN": "false"
   },
 
   "secrets": {

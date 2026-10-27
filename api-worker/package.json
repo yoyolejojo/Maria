@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "wrangler dev --ip 0.0.0.0",
     "deploy": "wrangler deploy",
-    "migrate:local": "wrangler d1 migrations apply maria-db --local",
-    "migrate:remote": "wrangler d1 migrations apply maria-db --remote"
+    "migrate:local": "wrangler d1 migrations apply maria-db --local && wrangler d1 migrations apply maria-photos --local",
+    "migrate:remote": "wrangler d1 migrations apply maria-db --remote && wrangler d1 migrations apply maria-photos --remote",
+    "taille": "wrangler d1 info maria-db && wrangler d1 info maria-photos"
   },
   "devDependencies": {
     "wrangler": "4.149.0"
