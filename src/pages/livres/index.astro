@@ -1,0 +1,198 @@
+---
+// Bibliothèque des livres lus ensemble : couvertures + note moyenne des reviews
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import AddButton from '../../components/AddButton.astro';
+---
+
+<!doctype html>
+<html lang="fr">
+	<head>
+		<BaseHead title="Nos lectures 📚" description="Les livres qu'on a lus ensemble" />
+		<style>
+			main {
+				width: 960px;
+				max-width: calc(100% - 2em);
+			}
+			.head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				flex-wrap: wrap;
+				margin-bottom: 2rem;
+			}
+			h1 {
+				margin: 0;
+				font-size: 2.2rem;
+				color: #333;
+			}
+			.status {
+				text-align: center;
+				color: #999;
+				font-style: italic;
+				padding: 3rem 0;
+			}
+
+			/* Grille de livres (cartes créées en JS, d'où :global) */
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+				gap: 2rem 1.5rem;
+			}
+			.grid :global(.livre) {
+				display: block;
+				color: inherit;
+				text-decoration: none;
+			}
+			.grid :global(.cover) {
+				display: block;
+				width: 100%;
+				aspect-ratio: 2 / 3;
+				object-fit: cover;
+				border-radius: 10px;
+				box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+				transition: transform 0.25s ease, box-shadow 0.25s ease;
+			}
+			.grid :global(.livre:hover .cover) {
+				transform: translateY(-4px);
+				box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+			}
+			/* Couverture par défaut quand il n'y a pas de photo */
+			.grid :global(.cover-placeholder) {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 1rem;
+				box-sizing: border-box;
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: white;
+				font-weight: 700;
+				font-size: 1.05rem;
+				line-height: 1.3;
+				text-align: center;
+				overflow: hidden;
+			}
+			.grid :global(.livre-titre) {
+				margin: 0.7rem 0 0.1rem;
+				font-size: 1rem;
+				line-height: 1.3;
+				color: #333;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+			.grid :global(.livre-auteur) {
+				margin: 0;
+				font-size: 0.85rem;
+				color: #999;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.grid :global(.livre-note) {
+				margin: 0.35rem 0 0;
+				font-size: 0.9rem;
+				color: #666;
+				white-space: nowrap;
+			}
+			.grid :global(.livre-note .etoiles) {
+				color: #f5b301;
+				letter-spacing: 0.05em;
+				margin-right: 0.3rem;
+			}
+			.grid :global(.livre-note.vide) {
+				color: #bbb;
+				font-style: italic;
+			}
+
+			@media (max-width: 720px) {
+				.head {
+					justify-content: center;
+					text-align: center;
+					margin-bottom: 1.5rem;
+				}
+				h1 {
+					font-size: 1.8rem;
+					width: 100%;
+				}
+				.grid {
+					grid-template-columns: repeat(2, 1fr);
+					gap: 1.5rem 1rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="head">
+				<h1>📚 Nos lectures</h1>
+				<AddButton href="/livres/ajouter/" label="Ajouter un livre" />
+			</div>
+			<p class="status" id="status">Chargement…</p>
+			<div class="grid" id="grid"></div>
+		</main>
+		<Footer />
+
+		<script>
+			import { api, photoUrl } from '../../scripts/posts';
+			import { livreUrl, stars, type Livre } from '../../scripts/livres';
+
+			const grid = document.getElementById('grid') as HTMLDivElement;
+			const status = document.getElementById('status') as HTMLParagraphElement;
+
+			function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string) {
+				const node = document.createElement(tag);
+				node.className = className;
+				if (text !== undefined) node.textContent = text;
+				return node;
+			}
+
+			function livreCard(livre: Livre) {
+				const a = el('a', 'livre');
+				a.href = livreUrl(livre.id);
+
+				if (livre.couverture_photo_id) {
+					const img = el('img', 'cover');
+					img.src = photoUrl(livre.couverture_photo_id);
+					img.alt = `Couverture de ${livre.titre}`;
+					img.loading = 'lazy';
+					a.append(img);
+				} else {
+					a.append(el('div', 'cover cover-placeholder', livre.titre));
+				}
+
+				a.append(el('h2', 'livre-titre', livre.titre));
+				if (livre.auteur) a.append(el('p', 'livre-auteur', livre.auteur));
+
+				if (livre.nb_avis && livre.note_moyenne != null) {
+					const note = el('p', 'livre-note');
+					note.append(el('span', 'etoiles', stars(livre.note_moyenne)), `${livre.note_moyenne.toFixed(1)}/5`);
+					a.append(note);
+				} else {
+					a.append(el('p', 'livre-note vide', 'Pas encore noté'));
+				}
+				return a;
+			}
+
+			async function loadLivres() {
+				try {
+					const livres = await api<Livre[]>('/livres');
+					if (livres.length === 0) {
+						status.textContent = 'Aucun livre pour l’instant. Ajoutez votre première lecture !';
+						return;
+					}
+					grid.replaceChildren(...livres.map(livreCard));
+					status.hidden = true;
+				} catch {
+					status.textContent = 'Erreur lors du chargement des livres.';
+				}
+			}
+
+			loadLivres();
+		</script>
+	</body>
+</html>

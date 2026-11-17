@@ -1,0 +1,226 @@
+---
+// Fiche d'un livre et ses reviews : /livres/lire/?id=3
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import CommentSection from '../../components/CommentSection.astro';
+import OptionsMenu from '../../components/OptionsMenu.astro';
+---
+
+<!doctype html>
+<html lang="fr">
+	<head>
+		<BaseHead title="Livre" description="Nos reviews de ce livre" />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+			}
+			.back {
+				display: inline-block;
+				margin-bottom: 1.5rem;
+				color: #999;
+				text-decoration: none;
+				font-size: 0.95rem;
+			}
+			.back:hover {
+				color: #667eea;
+			}
+			.status {
+				text-align: center;
+				color: #999;
+				font-style: italic;
+				padding: 3rem 0;
+			}
+			.fiche {
+				position: relative;
+				display: flex;
+				gap: 2rem;
+				align-items: flex-end;
+				padding-bottom: 2rem;
+				border-bottom: 1px solid #eee;
+			}
+			.cover {
+				flex: 0 0 200px;
+			}
+			.cover :global(img),
+			.cover :global(.cover-placeholder) {
+				display: block;
+				width: 100%;
+				aspect-ratio: 2 / 3;
+				object-fit: cover;
+				border-radius: 10px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+			}
+			.cover :global(.cover-placeholder) {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 1rem;
+				box-sizing: border-box;
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: white;
+				font-weight: 700;
+				font-size: 1.2rem;
+				text-align: center;
+			}
+			.infos {
+				padding-right: 3rem;
+			}
+			.infos h1 {
+				margin: 0 0 0.3rem;
+				font-size: 2.2rem;
+				line-height: 1.15;
+				color: #333;
+			}
+			.auteur {
+				margin: 0 0 1rem;
+				font-size: 1.15rem;
+				color: #666;
+			}
+			.date-fin {
+				margin: 0;
+				font-size: 0.95rem;
+				color: #999;
+			}
+			.resume {
+				padding: 1.5rem 0 0.5rem;
+				color: #555;
+				line-height: 1.7;
+			}
+			.resume h2 {
+				margin: 0 0 0.8rem;
+				font-size: 1.1rem;
+				color: #999;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+			}
+			.resume :global(p) {
+				margin: 0 0 0.8em;
+			}
+
+			@media (max-width: 720px) {
+				.fiche {
+					flex-direction: column;
+					align-items: center;
+					gap: 1.2rem;
+					text-align: center;
+				}
+				.cover {
+					flex-basis: auto;
+					width: 55%;
+					max-width: 220px;
+				}
+				.infos {
+					padding: 0;
+				}
+				.infos h1 {
+					font-size: 1.7rem;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<a class="back" href="/livres/">← Tous les livres</a>
+			<p class="status" id="status">Chargement…</p>
+			<article id="livre" hidden>
+				<div class="fiche">
+					<OptionsMenu />
+					<div class="cover" id="cover"></div>
+					<div class="infos">
+						<h1 id="livre-titre"></h1>
+						<p class="auteur" id="livre-auteur" hidden></p>
+						<p class="date-fin" id="livre-date" hidden></p>
+					</div>
+				</div>
+				<section class="resume" id="resume" hidden>
+					<h2>Résumé</h2>
+					<div id="resume-texte"></div>
+				</section>
+				<CommentSection />
+			</article>
+		</main>
+		<Footer />
+
+		<script>
+			import { api, photoUrl } from '../../scripts/posts';
+			import { formatDateFr, type Livre } from '../../scripts/livres';
+
+			const id = Number(new URLSearchParams(location.search).get('id'));
+			const status = document.getElementById('status') as HTMLParagraphElement;
+			const article = document.getElementById('livre') as HTMLElement;
+
+			async function loadLivre() {
+				if (!Number.isInteger(id) || id <= 0) {
+					status.textContent = 'Livre introuvable.';
+					return;
+				}
+
+				let livre: Livre;
+				try {
+					livre = await api<Livre>(`/livres/${id}`);
+				} catch (e) {
+					status.textContent = (e as Error).message === 'Livre introuvable' ? 'Livre introuvable.' : 'Erreur lors du chargement.';
+					return;
+				}
+
+				document.title = `${livre.titre} | Maria`;
+				(document.getElementById('livre-titre') as HTMLElement).textContent = livre.titre;
+
+				const auteur = document.getElementById('livre-auteur') as HTMLParagraphElement;
+				auteur.textContent = livre.auteur;
+				auteur.hidden = !livre.auteur;
+
+				const date = document.getElementById('livre-date') as HTMLParagraphElement;
+				if (livre.date_fin) date.textContent = `Fini le ${formatDateFr(livre.date_fin)}`;
+				date.hidden = !livre.date_fin;
+
+				// Résumé : une ligne = un paragraphe, en texte brut
+				if (livre.resume) {
+					const paragraphs = livre.resume.split('\n').filter((l) => l.trim()).map((line) => {
+						const p = document.createElement('p');
+						p.textContent = line.trim();
+						return p;
+					});
+					(document.getElementById('resume-texte') as HTMLDivElement).replaceChildren(...paragraphs);
+					(document.getElementById('resume') as HTMLElement).hidden = false;
+				}
+
+				const cover = document.getElementById('cover') as HTMLDivElement;
+				if (livre.couverture_photo_id) {
+					const img = document.createElement('img');
+					img.src = photoUrl(livre.couverture_photo_id);
+					img.alt = `Couverture de ${livre.titre}`;
+					cover.append(img);
+				} else {
+					const placeholder = document.createElement('div');
+					placeholder.className = 'cover-placeholder';
+					placeholder.textContent = livre.titre;
+					cover.append(placeholder);
+				}
+
+				(document.getElementById('edit-link') as HTMLAnchorElement).href = `/livres/ajouter/?id=${livre.id}`;
+
+				status.hidden = true;
+				article.hidden = false;
+			}
+
+			// ---------- Suppression (menu ⋯) ----------
+
+			document.getElementById('delete-btn')!.addEventListener('click', async () => {
+				if (!confirm('Supprimer ce livre ? Sa couverture et toutes ses reviews seront supprimées aussi.')) return;
+				try {
+					await api(`/livres/${id}`, { method: 'DELETE' });
+					location.href = '/livres/';
+				} catch (e) {
+					alert('Erreur : ' + (e as Error).message);
+				}
+			});
+
+			loadLivre();
+		</script>
+	</body>
+</html>

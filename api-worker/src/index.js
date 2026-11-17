@@ -1,4 +1,4 @@
-// API du site Maria : articles et photos, commentaires, sorties, compteur de boissons, notifications Telegram.
+// API du site Maria : articles et photos, livres, commentaires, sorties, compteur de boissons, notifications Telegram.
 // Toutes les requêtes SQL passent par prepare().bind().
 
 const SORTIE_CATEGORIES = ['Restaurant', 'Balade', 'Culture', 'Sport', 'Cinéma', 'Voyage', 'Autre'];
@@ -189,6 +189,11 @@ async function deleteCommentaire(env, id) {
 	return json({ ok: true });
 }
 
+// "2026-10-27"
+function isDay(value) {
+	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
+}
+
 // ---------- Articles ----------
 
 // Identifiant utilisé par les commentaires d'un article écrit depuis le site
@@ -200,9 +205,7 @@ function validatePost(body) {
 	const titre = requireText(body.titre, 'titre', 200);
 
 	const pubDate = body.pub_date;
-	if (typeof pubDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(pubDate) || Number.isNaN(Date.parse(pubDate))) {
-		throw new HttpError(400, 'pub_date doit être une date AAAA-MM-JJ');
-	}
+	if (!isDay(pubDate)) throw new HttpError(400, 'pub_date doit être une date AAAA-MM-JJ');
 
 	const heroPhotoId = body.hero_photo_id ?? null;
 	if (heroPhotoId !== null && (!Number.isSafeInteger(heroPhotoId) || heroPhotoId <= 0)) {
@@ -292,6 +295,97 @@ async function deletePost(env, id) {
 		env.DB.prepare('DELETE FROM commentaires WHERE post_id = ?').bind(postCommentId(id)),
 	]);
 	await deletePhotos(env, photoIds(post));
+	return json({ ok: true });
+}
+
+// ---------- Livres ----------
+
+// Identifiant utilisé par les reviews (table commentaires) d'un livre
+function livreCommentId(id) {
+	return `/livres/lire/?id=${id}`;
+}
+
+const LIVRE_COLUMNS = 'id, titre, auteur, resume, couverture_photo_id, date_fin, created_at, updated_at';
+const MAX_RESUME_CHARS = 2000;
+
+function validateLivre(body) {
+	const titre = requireText(body.titre, 'titre', 200);
+
+	const auteur = body.auteur ?? '';
+	if (typeof auteur !== 'string') throw new HttpError(400, 'auteur doit être un texte');
+	if (auteur.trim().length > 200) throw new HttpError(400, 'auteur : 200 caractères maximum');
+
+	const resume = body.resume ?? '';
+	if (typeof resume !== 'string') throw new HttpError(400, 'resume doit être un texte');
+	if (resume.trim().length > MAX_RESUME_CHARS) throw new HttpError(400, `resume : ${MAX_RESUME_CHARS} caractères maximum`);
+
+	const couverture = body.couverture_photo_id ?? null;
+	if (couverture !== null && (!Number.isSafeInteger(couverture) || couverture <= 0)) {
+		throw new HttpError(400, 'couverture_photo_id invalide');
+	}
+
+	const dateFin = body.date_fin || null;
+	if (dateFin !== null && !isDay(dateFin)) throw new HttpError(400, 'date_fin doit être une date AAAA-MM-JJ');
+
+	return { titre, auteur: auteur.trim(), resume: resume.replace(/\r\n?/g, '\n').trim(), couverture, dateFin };
+}
+
+async function findLivre(env, id) {
+	const livre = await env.DB.prepare(`SELECT ${LIVRE_COLUMNS} FROM livres WHERE id = ?`).bind(id).first();
+	if (!livre) throw new HttpError(404, 'Livre introuvable');
+	return livre;
+}
+
+// Liste avec la note moyenne des reviews ; les plus récemment terminés d'abord
+async function listLivres(env) {
+	const { results } = await env.DB.prepare(
+		`SELECT l.id, l.titre, l.auteur, l.couverture_photo_id, l.date_fin, l.created_at,
+		        ROUND(AVG(c.note), 1) AS note_moyenne, COUNT(c.id) AS nb_avis
+		 FROM livres l
+		 LEFT JOIN commentaires c ON c.post_id = '/livres/lire/?id=' || l.id
+		 GROUP BY l.id
+		 ORDER BY COALESCE(l.date_fin, substr(l.created_at, 1, 10)) DESC, l.id DESC`
+	).run();
+	return json(results);
+}
+
+async function addLivre(request, env) {
+	const { titre, auteur, resume, couverture, dateFin } = validateLivre(await readJson(request));
+	const livre = await env.DB.prepare(
+		`INSERT INTO livres (titre, auteur, resume, couverture_photo_id, date_fin) VALUES (?, ?, ?, ?, ?) RETURNING ${LIVRE_COLUMNS}`
+	)
+		.bind(titre, auteur, resume, couverture, dateFin)
+		.first();
+	return json(livre, 201);
+}
+
+async function updateLivre(request, env, id) {
+	const { titre, auteur, resume, couverture, dateFin } = validateLivre(await readJson(request));
+	const before = await findLivre(env, id);
+
+	const livre = await env.DB.prepare(
+		`UPDATE livres
+		 SET titre = ?, auteur = ?, resume = ?, couverture_photo_id = ?, date_fin = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+		 WHERE id = ?
+		 RETURNING ${LIVRE_COLUMNS}`
+	)
+		.bind(titre, auteur, resume, couverture, dateFin, id)
+		.first();
+
+	// Ancienne couverture remplacée ou retirée : supprimée de la base photos
+	if (before.couverture_photo_id && before.couverture_photo_id !== couverture) {
+		await deletePhotos(env, [before.couverture_photo_id]);
+	}
+	return json(livre);
+}
+
+async function deleteLivre(env, id) {
+	const livre = await findLivre(env, id);
+	await env.DB.batch([
+		env.DB.prepare('DELETE FROM livres WHERE id = ?').bind(id),
+		env.DB.prepare('DELETE FROM commentaires WHERE post_id = ?').bind(livreCommentId(id)),
+	]);
+	if (livre.couverture_photo_id) await deletePhotos(env, [livre.couverture_photo_id]);
 	return json({ ok: true });
 }
 
@@ -444,6 +538,14 @@ async function route(request, env, ctx) {
 		if (method === 'GET') return json(await findPost(env, id));
 		if (method === 'PUT') return updatePost(request, env, id);
 		if (method === 'DELETE') return deletePost(env, id);
+	} else if (path === '/livres') {
+		if (method === 'GET') return listLivres(env);
+		if (method === 'POST') return addLivre(request, env);
+	} else if (path.startsWith('/livres/')) {
+		const id = parseId(path, '/livres/');
+		if (method === 'GET') return json(await findLivre(env, id));
+		if (method === 'PUT') return updateLivre(request, env, id);
+		if (method === 'DELETE') return deleteLivre(env, id);
 	} else if (path === '/photos') {
 		if (method === 'POST') return addPhoto(request, env);
 	} else if (path.startsWith('/photos/')) {

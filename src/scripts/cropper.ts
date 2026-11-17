@@ -5,8 +5,8 @@
 const MAX_ZOOM = 4;
 // Taille max de la photo chargée dans l'outil (limite mémoire des canvas sur téléphone)
 const SOURCE_MAX_SIDE = 3000;
-// Largeur max de l'image exportée
-const OUTPUT_MAX_WIDTH = 1600;
+// Plus grand côté max de l'image exportée
+const OUTPUT_MAX_SIDE = 1600;
 
 export type CropperElements = {
 	modal: HTMLElement;
@@ -143,8 +143,10 @@ export function createCropper(els: CropperElements, aspect = 2) {
 		const sw = frameW / scale;
 		const sh = frameH / scale;
 		const out = document.createElement('canvas');
-		out.width = Math.round(Math.min(OUTPUT_MAX_WIDTH, sw));
-		out.height = Math.round(out.width / aspect);
+		// Jamais agrandie au-delà de la résolution d'origine
+		const outScale = Math.min(1, OUTPUT_MAX_SIDE / Math.max(sw, sh));
+		out.width = Math.round(sw * outScale);
+		out.height = Math.round(sh * outScale);
 		out.getContext('2d')!.drawImage(source, sx, sy, sw, sh, 0, 0, out.width, out.height);
 		return out;
 	}

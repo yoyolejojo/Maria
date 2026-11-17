@@ -1,6 +1,6 @@
 ---
 interface Props {
-  // Absent pour les articles écrits depuis le site : l'identifiant est lu dans l'URL (?id=)
+  // Absent pour les pages remplies depuis la base (articles du site, livres) : l'identifiant est lu dans l'URL
   postSlug?: string;
 }
 
@@ -409,8 +409,10 @@ button * {
   const form = document.getElementById('comment-form') as HTMLFormElement;
   const messageDiv = document.getElementById('message') as HTMLDivElement;
   const commentsContainer = document.getElementById('comments-container') as HTMLDivElement;
+  // Pages dynamiques (/blog/lire/?id=12, /livres/lire/?id=3) : identifiant tiré de l'adresse,
+  // avec le / final ajouté s'il manque pour toujours retrouver les mêmes commentaires
   const postSlug = (document.getElementById('post-slug') as HTMLInputElement).value
-    || `/blog/lire/?id=${new URLSearchParams(location.search).get('id')}`;
+    || `${location.pathname.replace(/\/?$/, '/')}?id=${new URLSearchParams(location.search).get('id')}`;
   
   type Comment = {
     id: number;

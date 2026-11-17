@@ -5,6 +5,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import CommentSection from '../../components/CommentSection.astro';
+import OptionsMenu from '../../components/OptionsMenu.astro';
 import { SITE_TITLE } from '../../consts';
 ---
 
@@ -67,64 +68,6 @@ import { SITE_TITLE } from '../../consts';
 				border-radius: 12px;
 			}
 
-			/* Menu ⋯ */
-			.post-menu {
-				position: absolute;
-				top: 0.5em;
-				right: 0;
-			}
-			.menu-toggle {
-				width: 40px;
-				height: 40px;
-				border: none;
-				border-radius: 50%;
-				background: transparent;
-				color: rgb(var(--gray));
-				font-size: 1.6rem;
-				line-height: 1;
-				cursor: pointer;
-				transition: background 0.2s ease;
-			}
-			.menu-toggle:hover,
-			.post-menu.open .menu-toggle {
-				background: rgba(0, 0, 0, 0.06);
-			}
-			.menu-items {
-				position: absolute;
-				right: 0;
-				top: calc(100% + 0.3em);
-				z-index: 10;
-				min-width: 170px;
-				padding: 0.4em;
-				background: white;
-				border: 1px solid #eee;
-				border-radius: 12px;
-				box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-				text-align: left;
-			}
-			.menu-items a,
-			.menu-items button {
-				display: block;
-				width: 100%;
-				padding: 0.7em 0.9em;
-				border: none;
-				border-radius: 8px;
-				background: none;
-				color: rgb(var(--gray-dark));
-				font: inherit;
-				font-size: 0.95rem;
-				text-align: left;
-				text-decoration: none;
-				cursor: pointer;
-			}
-			.menu-items a:hover,
-			.menu-items button:hover {
-				background: #f5f7ff;
-			}
-			.menu-items .danger:hover {
-				background: #fdecea;
-				color: #c0392b;
-			}
 		</style>
 	</head>
 
@@ -136,13 +79,7 @@ import { SITE_TITLE } from '../../consts';
 				<div class="hero-image" id="hero"></div>
 				<div class="prose">
 					<div class="title">
-						<div class="post-menu" id="post-menu">
-							<button class="menu-toggle" id="menu-toggle" type="button" aria-label="Options de l'article" aria-expanded="false" aria-haspopup="true">⋯</button>
-							<div class="menu-items" id="menu-items" hidden>
-								<a id="edit-link" href="#">✏️ Modifier</a>
-								<button class="danger" id="delete-btn" type="button">🗑️ Supprimer</button>
-							</div>
-						</div>
+						<OptionsMenu />
 						<div class="date"><time id="post-date"></time></div>
 						<h1 id="post-title"></h1>
 						<hr />
@@ -160,9 +97,6 @@ import { SITE_TITLE } from '../../consts';
 			const id = Number(new URLSearchParams(location.search).get('id'));
 			const status = document.getElementById('status') as HTMLParagraphElement;
 			const article = document.getElementById('post') as HTMLElement;
-			const menu = document.getElementById('post-menu') as HTMLDivElement;
-			const toggle = document.getElementById('menu-toggle') as HTMLButtonElement;
-			const items = document.getElementById('menu-items') as HTMLDivElement;
 
 			async function loadPost() {
 				if (!Number.isInteger(id) || id <= 0) {
@@ -202,27 +136,9 @@ import { SITE_TITLE } from '../../consts';
 				article.hidden = false;
 			}
 
-			// ---------- Menu ⋯ ----------
-
-			function setMenu(open: boolean) {
-				menu.classList.toggle('open', open);
-				items.hidden = !open;
-				toggle.setAttribute('aria-expanded', String(open));
-			}
-
-			toggle.addEventListener('click', (e) => {
-				e.stopPropagation();
-				setMenu(items.hidden);
-			});
-			document.addEventListener('click', (e) => {
-				if (!menu.contains(e.target as Node)) setMenu(false);
-			});
-			document.addEventListener('keydown', (e) => {
-				if (e.key === 'Escape') setMenu(false);
-			});
+			// ---------- Suppression (menu ⋯) ----------
 
 			document.getElementById('delete-btn')!.addEventListener('click', async () => {
-				setMenu(false);
 				if (!confirm('Supprimer cet article ? Ses photos et ses commentaires seront supprimés aussi.')) return;
 				try {
 					await api(`/posts/${id}`, { method: 'DELETE' });

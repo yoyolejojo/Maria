@@ -1,0 +1,396 @@
+---
+// Ajout d'un livre : /livres/ajouter/ ; modification : /livres/ajouter/?id=3
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import CropModal from '../../components/CropModal.astro';
+---
+
+<!doctype html>
+<html lang="fr">
+	<head>
+		<BaseHead title="Ajouter un livre" description="Ajouter un livre lu ensemble" />
+		<style>
+			main {
+				width: 620px;
+				max-width: calc(100% - 2em);
+			}
+			h1 {
+				text-align: center;
+				color: #333;
+				margin-bottom: 1.5rem;
+			}
+			.card {
+				background: white;
+				padding: 2rem;
+				border-radius: 20px;
+				box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+				border: 1px solid #f0f0f0;
+			}
+			.form-group {
+				margin-bottom: 1.5rem;
+			}
+			label,
+			.label {
+				display: block;
+				margin-bottom: 0.5rem;
+				font-weight: 600;
+				color: #555;
+				font-size: 0.95rem;
+			}
+			.optional {
+				font-weight: 400;
+				color: #aaa;
+			}
+			input[type='text'],
+			input[type='date'],
+			textarea {
+				width: 100%;
+				box-sizing: border-box;
+				padding: 0.9rem;
+				border: 2px solid #e0e0e0;
+				border-radius: 12px;
+				font-family: inherit;
+				font-size: 1rem;
+				background: #fafafa;
+				transition: all 0.3s ease;
+			}
+			input[type='text']:focus,
+			input[type='date']:focus,
+			textarea:focus {
+				outline: none;
+				border-color: #667eea;
+				background: white;
+				box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+			}
+			input[type='date'] {
+				max-width: 220px;
+			}
+			textarea {
+				min-height: 130px;
+				resize: vertical;
+				line-height: 1.6;
+			}
+
+			.soft-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				padding: 0.6rem 1.1rem;
+				border: 2px solid #e0e0e0;
+				border-radius: 50px;
+				background: white;
+				color: #555;
+				font: inherit;
+				font-size: 0.9rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.soft-btn[hidden] {
+				display: none;
+			}
+			.soft-btn:hover {
+				border-color: #667eea;
+				background: #f5f7ff;
+				color: #667eea;
+			}
+			.soft-btn:disabled {
+				opacity: 0.6;
+				cursor: wait;
+			}
+
+			.cover {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.cover img {
+				width: 120px;
+				aspect-ratio: 2 / 3;
+				object-fit: cover;
+				border-radius: 8px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+			}
+			.cover-buttons {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 0.5rem;
+			}
+
+			.actions {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				justify-content: flex-end;
+				flex-wrap: wrap;
+			}
+			.cancel {
+				color: #999;
+				text-decoration: none;
+			}
+			.cancel:hover {
+				color: #667eea;
+			}
+			.publish {
+				position: relative;
+				overflow: hidden;
+				background-image: url('/Leopard.jpg');
+				background-size: cover;
+				background-position: center;
+				color: white;
+				padding: 1rem 2.5rem;
+				border: none;
+				border-radius: 50px;
+				cursor: pointer;
+				font: inherit;
+				font-size: 1.1rem;
+				font-weight: 700;
+				text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+				transition: all 0.3s ease;
+			}
+			.publish::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				background: rgba(0, 0, 0, 0.3);
+			}
+			.publish span {
+				position: relative;
+			}
+			.publish:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+			}
+			.publish:disabled {
+				opacity: 0.7;
+				cursor: wait;
+				transform: none;
+			}
+
+			#message {
+				margin-top: 1.2rem;
+				text-align: center;
+				font-weight: 500;
+				min-height: 1.4em;
+			}
+			#message.error {
+				color: #721c24;
+			}
+			#message.info {
+				color: #667eea;
+			}
+
+			@media (max-width: 720px) {
+				h1 {
+					font-size: 2rem;
+				}
+				.card {
+					padding: 1.3rem;
+				}
+				.publish {
+					width: 100%;
+				}
+				.actions {
+					flex-direction: column-reverse;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<h1 id="page-title">📚 Ajouter un livre</h1>
+
+			<form id="livre-form" class="card" novalidate>
+				<div class="form-group">
+					<label for="titre">Titre</label>
+					<input type="text" id="titre" maxlength="200" required autocomplete="off" />
+				</div>
+
+				<div class="form-group">
+					<label for="auteur">Auteur <span class="optional">(facultatif)</span></label>
+					<input type="text" id="auteur" maxlength="200" autocomplete="off" />
+				</div>
+
+				<div class="form-group">
+					<label for="resume">Résumé <span class="optional">(facultatif)</span></label>
+					<textarea id="resume" maxlength="2000"></textarea>
+				</div>
+
+				<div class="form-group">
+					<label for="date-fin">Fini le <span class="optional">(facultatif)</span></label>
+					<input type="date" id="date-fin" />
+				</div>
+
+				<div class="form-group">
+					<span class="label">Couverture <span class="optional">(facultatif)</span></span>
+					<div class="cover">
+						<img id="cover-preview" alt="" hidden />
+						<div class="cover-buttons">
+							<button type="button" class="soft-btn" id="cover-btn">📷 Choisir une photo</button>
+							<button type="button" class="soft-btn" id="cover-remove" hidden>Retirer</button>
+						</div>
+					</div>
+					<input type="file" id="cover-input" accept="image/*" hidden />
+				</div>
+
+				<div class="actions">
+					<a class="cancel" id="cancel-link" href="/livres/">Annuler</a>
+					<button type="submit" class="publish" id="publish-btn"><span>Ajouter</span></button>
+				</div>
+				<div id="message" role="status"></div>
+			</form>
+		</main>
+
+		<CropModal title="Recadrer la couverture" aspect={2 / 3} />
+		<Footer />
+
+		<script>
+			import { createCropper } from '../../scripts/cropper';
+			import { api, encodeCanvas, photoUrl, today, uploadBlob } from '../../scripts/posts';
+			import { livreUrl, type Livre } from '../../scripts/livres';
+
+			const editId = Number(new URLSearchParams(location.search).get('id')) || null;
+
+			const form = document.getElementById('livre-form') as HTMLFormElement;
+			const titreInput = document.getElementById('titre') as HTMLInputElement;
+			const auteurInput = document.getElementById('auteur') as HTMLInputElement;
+			const resumeInput = document.getElementById('resume') as HTMLTextAreaElement;
+			const dateInput = document.getElementById('date-fin') as HTMLInputElement;
+			const coverPreview = document.getElementById('cover-preview') as HTMLImageElement;
+			const coverBtn = document.getElementById('cover-btn') as HTMLButtonElement;
+			const coverRemove = document.getElementById('cover-remove') as HTMLButtonElement;
+			const coverInput = document.getElementById('cover-input') as HTMLInputElement;
+			const publishBtn = document.getElementById('publish-btn') as HTMLButtonElement;
+			const messageDiv = document.getElementById('message') as HTMLDivElement;
+
+			let coverId: number | null = null;
+			let uploading = false;
+
+			function showMessage(text: string, kind: 'error' | 'info' | '' = '') {
+				messageDiv.textContent = text;
+				messageDiv.className = kind;
+			}
+
+			// ---------- Couverture ----------
+
+			const cropper = createCropper(
+				{
+					modal: document.getElementById('crop-modal') as HTMLElement,
+					stage: document.getElementById('crop-stage') as HTMLElement,
+					zoom: document.getElementById('crop-zoom') as HTMLInputElement,
+					cancel: document.getElementById('crop-cancel') as HTMLButtonElement,
+					confirm: document.getElementById('crop-confirm') as HTMLButtonElement,
+				},
+				2 / 3
+			);
+
+			function setCover(id: number | null) {
+				coverId = id;
+				coverPreview.hidden = id === null;
+				coverRemove.hidden = id === null;
+				if (id !== null) coverPreview.src = photoUrl(id);
+				coverBtn.textContent = id === null ? '📷 Choisir une photo' : '📷 Changer';
+			}
+
+			coverBtn.addEventListener('click', () => coverInput.click());
+			coverRemove.addEventListener('click', () => setCover(null));
+			coverInput.addEventListener('change', async () => {
+				const file = coverInput.files?.[0];
+				coverInput.value = '';
+				if (!file) return;
+
+				let cropped: HTMLCanvasElement | null;
+				try {
+					cropped = await cropper.crop(file);
+				} catch {
+					showMessage('Impossible de lire cette photo.', 'error');
+					return;
+				}
+				if (!cropped) return;
+
+				uploading = true;
+				publishBtn.disabled = true;
+				coverBtn.disabled = true;
+				coverBtn.textContent = '⏳ Envoi…';
+				showMessage('');
+				try {
+					setCover(await uploadBlob(await encodeCanvas(cropped)));
+				} catch (e) {
+					showMessage("Impossible d'envoyer la photo : " + (e as Error).message, 'error');
+					setCover(coverId);
+				} finally {
+					uploading = false;
+					publishBtn.disabled = false;
+					coverBtn.disabled = false;
+				}
+			});
+
+			// ---------- Chargement (modification) ----------
+
+			async function init() {
+				if (!editId) {
+					dateInput.value = today();
+					return;
+				}
+
+				document.getElementById('page-title')!.textContent = '📚 Modifier le livre';
+				document.title = 'Modifier le livre';
+				(publishBtn.querySelector('span') as HTMLSpanElement).textContent = 'Enregistrer';
+				(document.getElementById('cancel-link') as HTMLAnchorElement).href = livreUrl(editId);
+
+				try {
+					const livre = await api<Livre>(`/livres/${editId}`);
+					titreInput.value = livre.titre;
+					auteurInput.value = livre.auteur;
+					resumeInput.value = livre.resume;
+					dateInput.value = livre.date_fin || '';
+					setCover(livre.couverture_photo_id);
+				} catch (e) {
+					showMessage('Impossible de charger le livre : ' + (e as Error).message, 'error');
+					publishBtn.disabled = true;
+				}
+			}
+
+			// ---------- Enregistrement ----------
+
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				if (uploading) return;
+				if (!titreInput.value.trim()) {
+					showMessage('Il faut au moins un titre.', 'error');
+					return;
+				}
+
+				publishBtn.disabled = true;
+				showMessage('Enregistrement…', 'info');
+				try {
+					const livre = await api<Livre>(editId ? `/livres/${editId}` : '/livres', {
+						method: editId ? 'PUT' : 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							titre: titreInput.value,
+							auteur: auteurInput.value,
+							resume: resumeInput.value,
+							date_fin: dateInput.value || null,
+							couverture_photo_id: coverId,
+						}),
+					});
+					location.href = livreUrl(livre.id);
+				} catch (err) {
+					showMessage('Erreur : ' + (err as Error).message, 'error');
+					publishBtn.disabled = false;
+				}
+			});
+
+			init();
+		</script>
+	</body>
+</html>

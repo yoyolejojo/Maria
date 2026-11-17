@@ -5,6 +5,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
+import AddButton from '../../components/AddButton.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
 const posts = (await getCollection('blog')).sort(
@@ -74,42 +75,6 @@ const posts = (await getCollection('blog')).sort(
 				justify-content: flex-end;
 				margin-bottom: 2rem;
 			}
-			.new-post {
-				display: inline-flex;
-				align-items: center;
-				gap: 0.6rem;
-				padding: 0.4rem 1.2rem 0.4rem 0.4rem;
-				background: white;
-				border: 1px solid #e6e6e6;
-				border-radius: 50px;
-				color: #333;
-				font-weight: 600;
-				text-decoration: none;
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-				transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-			}
-			.new-post:hover {
-				transform: translateY(-1px);
-				border-color: #d6d6d6;
-				box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-			}
-			/* La touche léopard : une pastille ronde avec le + */
-			.new-post .badge {
-				display: grid;
-				place-items: center;
-				width: 34px;
-				height: 34px;
-				border-radius: 50%;
-				background-image: url('/Leopard.jpg');
-				background-size: 220%;
-				background-position: center;
-				box-shadow: inset 0 0 0 40px rgba(0, 0, 0, 0.28);
-				color: white;
-				font-size: 1.3rem;
-				font-weight: 700;
-				line-height: 1;
-				text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-			}
 			/* Couverture des articles écrits depuis le site : même cadrage 2:1 que les anciens */
 			.db-cover {
 				width: 100%;
@@ -143,7 +108,7 @@ const posts = (await getCollection('blog')).sort(
 		<main>
 			<section>
 				<div class="toolbar">
-					<a class="new-post" href="/blog/ecrire/"><span class="badge" aria-hidden="true">+</span>Nouveau post</a>
+					<AddButton href="/blog/ecrire/" label="Nouveau post" />
 				</div>
 				<ul id="posts-list">
 					{

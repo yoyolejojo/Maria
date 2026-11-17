@@ -14,6 +14,7 @@ import HeaderLink from './HeaderLink.astro';
 		</button>
 		<div class="internal-links" id="internal-links">
 			<HeaderLink href="/blog">Date</HeaderLink>
+			<HeaderLink href="/livres">Livres</HeaderLink>
 			<HeaderLink href="/sleep">Dodo</HeaderLink>
 			<!-- <HeaderLink href="/valentine">???</HeaderLink> -->
 			<HeaderLink href="/sorties">Sorties</HeaderLink>
@@ -117,22 +118,29 @@ import HeaderLink from './HeaderLink.astro';
 			padding: 1em 0;
 		}
 
+		/* Règles explicites pour Safari iOS : pas de style natif de bouton, pas de gap flex */
 		.burger {
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
-			gap: 5px;
+			align-items: center;
 			width: 44px;
 			height: 44px;
-			padding: 10px;
+			padding: 0;
+			margin: 0;
 			background: none;
 			border: none;
+			-webkit-appearance: none;
+			appearance: none;
+			-webkit-tap-highlight-color: transparent;
 			cursor: pointer;
 		}
 
 		.burger span {
 			display: block;
+			width: 24px;
 			height: 3px;
+			margin: 2.5px 0;
 			background: white;
 			border-radius: 3px;
 			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
@@ -161,32 +169,45 @@ import HeaderLink from './HeaderLink.astro';
 			z-index: 1000;
 		}
 
-		/* Panneau plein écran, fond sombre flouté laissant deviner la page */
+		/* Panneau plein écran, fond sombre (flouté si le navigateur sait le faire).
+		   top/right/bottom/left plutôt que inset, et pas de bascule de visibility,
+		   pour les versions de Safari iOS qui les gèrent mal. */
 		nav .internal-links {
 			position: fixed;
-			inset: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
 			z-index: 2;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 			justify-content: center;
-			gap: 0.4em;
-			background: rgba(15, 15, 20, 0.7);
-			-webkit-backdrop-filter: blur(10px);
-			backdrop-filter: blur(10px);
+			background: rgba(15, 15, 20, 0.92);
 			opacity: 0;
-			visibility: hidden;
-			transition: opacity 0.3s ease, visibility 0.3s ease;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+		}
+
+		@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+			nav .internal-links {
+				background: rgba(15, 15, 20, 0.7);
+				-webkit-backdrop-filter: blur(10px);
+				backdrop-filter: blur(10px);
+			}
 		}
 
 		nav.open .internal-links {
 			opacity: 1;
-			visibility: visible;
+			pointer-events: auto;
 		}
 
 		.internal-links a {
 			font-size: 1.7rem;
 			font-weight: 600;
+			margin: 0.2em 0;
 			padding: 0.3em 0.8em;
 			border-bottom-width: 3px;
 			opacity: 0;

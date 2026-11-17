@@ -3,6 +3,7 @@
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
+import CropModal from '../../components/CropModal.astro';
 ---
 
 <!doctype html>
@@ -156,7 +157,10 @@ import Header from '../../components/Header.astro';
 			.publish::before {
 				content: '';
 				position: absolute;
-				inset: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
 				background: rgba(0, 0, 0, 0.3);
 			}
 			.publish span {
@@ -214,87 +218,7 @@ import Header from '../../components/Header.astro';
 				font-style: italic;
 			}
 
-			/* Fenêtre de recadrage de la couverture */
-			.crop-modal {
-				position: fixed;
-				inset: 0;
-				z-index: 2000;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				padding: 1rem;
-				background: rgba(15, 15, 20, 0.75);
-				-webkit-backdrop-filter: blur(8px);
-				backdrop-filter: blur(8px);
-			}
-			.crop-modal[hidden] {
-				display: none;
-			}
-			.crop-dialog {
-				width: min(820px, 100%);
-				padding: 1.5rem;
-				background: white;
-				border-radius: 20px;
-				box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-			}
-			.crop-dialog h2 {
-				margin: 0 0 1rem;
-				font-size: 1.2rem;
-				color: #333;
-				text-align: center;
-			}
-			.crop-stage {
-				position: relative;
-				width: 100%;
-				aspect-ratio: 2 / 1;
-				overflow: hidden;
-				border-radius: 12px;
-				background: #111;
-				cursor: grab;
-				touch-action: none;
-				user-select: none;
-			}
-			.crop-stage:active {
-				cursor: grabbing;
-			}
-			.crop-stage :global(.crop-source) {
-				position: absolute;
-				top: 0;
-				left: 0;
-				transform-origin: 0 0;
-				pointer-events: none;
-			}
-			.crop-zoom {
-				display: flex;
-				align-items: center;
-				gap: 0.8rem;
-				margin: 1.2rem 0;
-				color: #999;
-			}
-			.crop-zoom input {
-				flex: 1;
-				accent-color: #667eea;
-			}
-			.crop-actions {
-				display: flex;
-				justify-content: flex-end;
-				gap: 0.8rem;
-			}
-			.crop-actions .confirm {
-				border-color: #667eea;
-				background: #667eea;
-				color: white;
-				font-weight: 600;
-			}
-			.crop-actions .confirm:hover {
-				background: #5a6fd6;
-				color: white;
-			}
-
 			@media (max-width: 720px) {
-				.crop-dialog {
-					padding: 1rem;
-				}
 				h1 {
 					font-size: 2rem;
 				}
@@ -364,20 +288,7 @@ import Header from '../../components/Header.astro';
 			</section>
 		</main>
 
-		<div class="crop-modal" id="crop-modal" hidden role="dialog" aria-modal="true" aria-labelledby="crop-title">
-			<div class="crop-dialog">
-				<h2 id="crop-title">Recadrer la couverture</h2>
-				<div class="crop-stage" id="crop-stage"></div>
-				<div class="crop-zoom">
-					<span aria-hidden="true">🔍</span>
-					<input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
-				</div>
-				<div class="crop-actions">
-					<button type="button" class="soft-btn" id="crop-cancel">Annuler</button>
-					<button type="button" class="soft-btn confirm" id="crop-confirm">Valider</button>
-				</div>
-			</div>
-		</div>
+		<CropModal title="Recadrer la couverture" aspect={2} />
 		<Footer />
 
 		<script>

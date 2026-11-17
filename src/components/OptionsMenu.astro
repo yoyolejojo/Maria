@@ -1,0 +1,96 @@
+---
+// Menu ⋯ « Modifier / Supprimer », placé en haut à droite d'un conteneur en position: relative.
+// La page renseigne le lien #edit-link et gère le clic sur #delete-btn.
+---
+
+<div class="options-menu" id="options-menu">
+	<button class="menu-toggle" id="menu-toggle" type="button" aria-label="Options" aria-expanded="false" aria-haspopup="true">⋯</button>
+	<div class="menu-items" id="menu-items" hidden>
+		<a id="edit-link" href="#">✏️ Modifier</a>
+		<button class="danger" id="delete-btn" type="button">🗑️ Supprimer</button>
+	</div>
+</div>
+
+<style>
+	.options-menu {
+		position: absolute;
+		top: 0.5em;
+		right: 0;
+		z-index: 10;
+	}
+	.menu-toggle {
+		width: 40px;
+		height: 40px;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: rgb(var(--gray));
+		font-size: 1.6rem;
+		line-height: 1;
+		cursor: pointer;
+		transition: background 0.2s ease;
+	}
+	.menu-toggle:hover,
+	.options-menu.open .menu-toggle {
+		background: rgba(0, 0, 0, 0.06);
+	}
+	.menu-items {
+		position: absolute;
+		right: 0;
+		top: calc(100% + 0.3em);
+		min-width: 170px;
+		padding: 0.4em;
+		background: white;
+		border: 1px solid #eee;
+		border-radius: 12px;
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+		text-align: left;
+	}
+	.menu-items a,
+	.menu-items button {
+		display: block;
+		width: 100%;
+		padding: 0.7em 0.9em;
+		border: none;
+		border-radius: 8px;
+		background: none;
+		color: rgb(var(--gray-dark));
+		font: inherit;
+		font-size: 0.95rem;
+		text-align: left;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.menu-items a:hover,
+	.menu-items button:hover {
+		background: #f5f7ff;
+	}
+	.menu-items .danger:hover {
+		background: #fdecea;
+		color: #c0392b;
+	}
+</style>
+
+<script>
+	const menu = document.getElementById('options-menu') as HTMLDivElement;
+	const toggle = document.getElementById('menu-toggle') as HTMLButtonElement;
+	const items = document.getElementById('menu-items') as HTMLDivElement;
+
+	function setMenu(open: boolean) {
+		menu.classList.toggle('open', open);
+		items.hidden = !open;
+		toggle.setAttribute('aria-expanded', String(open));
+	}
+
+	toggle.addEventListener('click', (e) => {
+		e.stopPropagation();
+		setMenu(items.hidden);
+	});
+	// Fermer en cliquant ailleurs, sur une option, ou avec Échap
+	document.addEventListener('click', (e) => {
+		if (!menu.contains(e.target as Node) || items.contains(e.target as Node)) setMenu(false);
+	});
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') setMenu(false);
+	});
+</script>
